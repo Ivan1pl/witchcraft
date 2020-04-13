@@ -1,4 +1,4 @@
-group 'com.ivan1pl.spigot-utils'
+group 'com.ivan1pl.netherite'
 version '0.1.0'
 
 sourceCompatibility = 1.8

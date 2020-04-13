@@ -10,7 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 /**
  * Base plugin class, extend it to create your plugin.
  */
-public class BasePlugin extends JavaPlugin {
+public class NetheritePlugin extends JavaPlugin {
     private AnnotationBasedCommandExecutor annotationBasedCommandExecutor;
 
     /**

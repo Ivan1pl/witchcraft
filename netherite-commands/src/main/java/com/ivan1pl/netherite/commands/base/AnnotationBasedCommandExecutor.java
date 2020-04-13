@@ -11,53 +11,51 @@ import org.reflections.Reflections;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * Command executor for all commands generated with {@link com.ivan1pl.netherite.commands.annotations.Command} annotation.
  */
 class AnnotationBasedCommandExecutor implements TabExecutor {
-    private static final Logger LOGGER = Logger.getLogger(AnnotationBasedCommandExecutor.class.getCanonicalName());
-
     private final Map<String, CommandHolder> commands = new HashMap<>();
 
     /**
      * Default constructor.
-     * @param basePlugin plugin instance
+     * @param netheritePlugin plugin instance
      */
-    AnnotationBasedCommandExecutor(BasePlugin basePlugin) throws CommandAlreadyExistsException,
+    AnnotationBasedCommandExecutor(NetheritePlugin netheritePlugin) throws CommandAlreadyExistsException,
             InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException,
             CommandDefinitionNotFoundException {
-        String basePackage = basePlugin.getClass().getPackage() == null ?
-                null : basePlugin.getClass().getPackage().getName();
-        Plugin plugin = basePlugin.getClass().getAnnotation(Plugin.class);
+        String basePackage = netheritePlugin.getClass().getPackage() == null ?
+                null : netheritePlugin.getClass().getPackage().getName();
+        Plugin plugin = netheritePlugin.getClass().getAnnotation(Plugin.class);
         if (plugin != null && !plugin.basePackage().isEmpty()) {
             basePackage = plugin.basePackage();
         }
-        LOGGER.info(String.format("Starting package scan for package: %s", basePackage));
+        netheritePlugin.getLogger().info(String.format("Starting package scan for package: %s", basePackage));
         Set<Class<?>> commands = new Reflections(basePackage)
                 .getTypesAnnotatedWith(com.ivan1pl.netherite.commands.annotations.Command.class);
         for (Class<?> commandClass : commands) {
             com.ivan1pl.netherite.commands.annotations.Command command =
                     commandClass.getAnnotation(com.ivan1pl.netherite.commands.annotations.Command.class);
             if (command != null && !command.name().isEmpty()) {
-                LOGGER.info(String.format("Processing command: %s", command.name().toLowerCase()));
+                netheritePlugin.getLogger().info(String.format("Processing command: %s", command.name().toLowerCase()));
                 CommandHolder holder = this.commands.get(command.name().toLowerCase());
                 if (holder != null) {
                     throw new CommandAlreadyExistsException(
                             String.format("Command %s already exists", command.name().toLowerCase()));
                 }
-                holder = new CommandHolder(basePlugin, command.name().toLowerCase(), commandClass);
+                holder = new CommandHolder(netheritePlugin, command.name().toLowerCase(), commandClass);
                 this.commands.put(command.name().toLowerCase(), holder);
-                LOGGER.info(String.format("Registered command: %s", command.name().toLowerCase()));
-                PluginCommand pluginCommand = basePlugin.getCommand(command.name().toLowerCase());
+                netheritePlugin.getLogger().info(String.format("Registered command: %s", command.name().toLowerCase()));
+                PluginCommand pluginCommand = netheritePlugin.getCommand(command.name().toLowerCase());
                 if (pluginCommand != null) {
                     pluginCommand.setExecutor(this);
                     pluginCommand.setTabCompleter(this);
                 } else {
                     throw new CommandDefinitionNotFoundException("Command definition is missing from plugin.yml");
                 }
-                LOGGER.info(String.format("Registered %s as command executor and tab completer for command %s",
+                netheritePlugin.getLogger().info(String.format(
+                        "Registered %s as command executor and tab completer for command %s",
                         AnnotationBasedCommandExecutor.class.getCanonicalName(), command.name().toLowerCase()));
             }
         }

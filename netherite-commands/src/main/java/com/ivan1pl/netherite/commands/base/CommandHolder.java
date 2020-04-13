@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -25,23 +24,21 @@ import java.util.stream.Collectors;
  * annotation and a mapping from subcommand names to methods.
  */
 class CommandHolder {
-    private static final Logger LOGGER = Logger.getLogger(CommandHolder.class.getCanonicalName());
-
-    private final BasePlugin basePlugin;
+    private final NetheritePlugin netheritePlugin;
     private final String commandName;
     private final Object commandObject;
     private final Map<String, Method> subcommands = new HashMap<>();
 
     /**
      * Create new instance.
-     * @param basePlugin plugin instance
+     * @param netheritePlugin plugin instance
      * @param commandName command name
      * @param commandClass command class
      */
-    CommandHolder(BasePlugin basePlugin, String commandName, Class<?> commandClass)
+    CommandHolder(NetheritePlugin netheritePlugin, String commandName, Class<?> commandClass)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException,
             CommandAlreadyExistsException {
-        this.basePlugin = basePlugin;
+        this.netheritePlugin = netheritePlugin;
         this.commandName = commandName;
         this.commandObject = commandClass.getConstructor().newInstance();
         initSubcommands();
@@ -55,14 +52,14 @@ class CommandHolder {
         for (Method m : commandObject.getClass().getMethods()) {
             SubCommand subCommand = m.getAnnotation(SubCommand.class);
             if (subCommand != null) {
-                LOGGER.info(String.format("Processing subcommand: %s", subCommand.value()));
+                netheritePlugin.getLogger().info(String.format("Processing subcommand: %s", subCommand.value()));
                 Method method = subcommands.get(subCommand.value());
                 if (method != null) {
                     throw new CommandAlreadyExistsException(String.format(
                             "Subcommand \"%s\" already exists within command %s", subCommand.value(), commandName));
                 }
                 subcommands.put(subCommand.value(), m);
-                LOGGER.info(String.format("Registered subcommand: %s", subCommand.value()));
+                netheritePlugin.getLogger().info(String.format("Registered subcommand: %s", subCommand.value()));
             }
         }
         if (!subcommands.containsKey("help")) {
@@ -159,7 +156,7 @@ class CommandHolder {
             } else {
                 ConfigurationValue configurationValue = parameter.getAnnotation(ConfigurationValue.class);
                 if (configurationValue != null) {
-                    params[i] = basePlugin.getConfig().getObject(
+                    params[i] = netheritePlugin.getConfig().getObject(
                             configurationValue.value(), parameter.getType(), null);
                 } else {
                     String value;
@@ -188,10 +185,11 @@ class CommandHolder {
             m.invoke(commandObject, params);
             return ExecutionStatus.SUCCESS;
         } catch (IllegalAccessException | InvocationTargetException e) {
-            LOGGER.severe("Failed to execute subcommand method\n" + ExceptionUtils.getFullStackTrace(e));
+            netheritePlugin.getLogger().severe(
+                    "Failed to execute subcommand method\n" + ExceptionUtils.getFullStackTrace(e));
             return ExecutionStatus.FAILURE;
         } catch (Exception e) {
-            LOGGER.severe("An exception occured while executing subcommand method\n" +
+            netheritePlugin.getLogger().severe("An exception occured while executing subcommand method\n" +
                     ExceptionUtils.getFullStackTrace(e));
             return ExecutionStatus.ERROR;
         }
@@ -213,7 +211,7 @@ class CommandHolder {
                 typeAdapter = adapter.value().getConstructor().newInstance();
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                     NoSuchMethodException e) {
-                LOGGER.severe(
+                netheritePlugin.getLogger().severe(
                         "Unable to instantiate type adapter: no default constructor found or it is inaccessible\n"
                                 + ExceptionUtils.getFullStackTrace(e));
                 return null;
@@ -258,11 +256,11 @@ class CommandHolder {
                 }
             }
             if (expectedType.isAssignableFrom(Player.class)) {
-                Player player = basePlugin.getServer().getPlayer(stringValue);
+                Player player = netheritePlugin.getServer().getPlayer(stringValue);
                 if (player != null) {
                     return player;
                 } else {
-                    OfflinePlayer[] players = basePlugin.getServer().getOfflinePlayers();
+                    OfflinePlayer[] players = netheritePlugin.getServer().getOfflinePlayers();
                     for (OfflinePlayer offlinePlayer : players) {
                         if (stringValue.equalsIgnoreCase(offlinePlayer.getName())) {
                             return offlinePlayer.getPlayer();
@@ -358,7 +356,7 @@ class CommandHolder {
      */
     private Set<String> getTabCompletions(String partial, Class<?> expectedType, TabComplete tabComplete) {
         if (expectedType.isAssignableFrom(Player.class)) {
-            return basePlugin.getServer().matchPlayer(partial).stream()
+            return netheritePlugin.getServer().matchPlayer(partial).stream()
                     .map(HumanEntity::getName)
                     .collect(Collectors.toSet());
         } else if (tabComplete != null) {
@@ -366,7 +364,7 @@ class CommandHolder {
                 TabCompleter tabCompleter = tabComplete.value().getConstructor().newInstance();
                 return tabCompleter.getSuggestions(partial);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                LOGGER.severe(
+                netheritePlugin.getLogger().severe(
                         "Failed to instantiate tab completer: no default constructor found or it is inaccessible\n"
                                 + ExceptionUtils.getFullStackTrace(e));
             }

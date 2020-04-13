@@ -1,9 +1,9 @@
 package com.ivan1pl.netherite.examples.commands;
 
-import com.ivan1pl.spigot.utils.commands.annotations.Command;
-import com.ivan1pl.spigot.utils.commands.annotations.Optional;
-import com.ivan1pl.spigot.utils.commands.annotations.Sender;
-import com.ivan1pl.spigot.utils.commands.annotations.SubCommand;
+import com.ivan1pl.netherite.commands.annotations.Command;
+import com.ivan1pl.netherite.commands.annotations.Optional;
+import com.ivan1pl.netherite.commands.annotations.Sender;
+import com.ivan1pl.netherite.commands.annotations.SubCommand;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;

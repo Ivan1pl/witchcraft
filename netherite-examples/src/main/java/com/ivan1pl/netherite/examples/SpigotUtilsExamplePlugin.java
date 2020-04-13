@@ -1,10 +1,10 @@
 package com.ivan1pl.netherite.examples;
 
-import com.ivan1pl.spigot.utils.commands.base.BasePlugin;
-import com.ivan1pl.spigot.utils.core.annotations.ChildPermission;
-import com.ivan1pl.spigot.utils.core.annotations.Permission;
-import com.ivan1pl.spigot.utils.core.annotations.PermissionDefault;
-import com.ivan1pl.spigot.utils.core.annotations.PluginData;
+import com.ivan1pl.netherite.commands.base.BasePlugin;
+import com.ivan1pl.netherite.core.annotations.ChildPermission;
+import com.ivan1pl.netherite.core.annotations.Permission;
+import com.ivan1pl.netherite.core.annotations.PermissionDefault;
+import com.ivan1pl.netherite.core.annotations.PluginData;
 
 /**
  * Base plugin class.

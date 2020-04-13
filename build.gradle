@@ -1,0 +1,60 @@
+group 'com.ivan1pl.netherite'
+version '0.1.0'
+
+ext {
+    spigotVersion = '1.13.2-R0.1-SNAPSHOT'
+    reflectionsVersion = '0.9.11'
+}
+
+allprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    group 'com.ivan1pl.netherite'
+    version '0.1.0'
+
+    sourceCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+        maven {
+            url 'https://hub.spigotmc.org/nexus/content/repositories/public/'
+        }
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                versionMapping {
+                    usage('java-api') {
+                        fromResolutionOf('runtimeClasspath')
+                    }
+                    usage('java-runtime') {
+                        fromResolutionResult()
+                    }
+                }
+                pom {
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'Ivan1pl'
+                            name = 'Mikołaj Nowak'
+                            //email = 'john.doe@example.com'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

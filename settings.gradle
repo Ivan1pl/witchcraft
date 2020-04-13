@@ -1,0 +1,6 @@
+rootProject.name = 'netherite'
+include 'netherite-core'
+include 'netherite-commands'
+include 'netherite-plugin-generator'
+include 'netherite-examples'
+

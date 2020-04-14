@@ -44,7 +44,8 @@ class AnnotationBasedCommandExecutor implements TabExecutor {
                     throw new CommandAlreadyExistsException(
                             String.format("Command %s already exists", command.name().toLowerCase()));
                 }
-                holder = new CommandHolder(netheritePlugin, command.name().toLowerCase(), commandClass);
+                holder = new CommandHolder(netheritePlugin, command.name().toLowerCase(), command.description(),
+                        commandClass);
                 this.commands.put(command.name().toLowerCase(), holder);
                 netheritePlugin.getLogger().info(String.format("Registered command: %s", command.name().toLowerCase()));
                 PluginCommand pluginCommand = netheritePlugin.getCommand(command.name().toLowerCase());

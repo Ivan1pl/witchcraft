@@ -20,11 +20,12 @@ class Help {
      * Display default help message.
      * @param commandSender command sender
      * @param commandName command name
+     * @param commandDescription command description
      * @param firstArg first argument (possibly a subcommand)
      * @param subcommands subcommands
      */
-    static void help(CommandSender commandSender, String commandName, String firstArg,
-                             Map<String, Method> subcommands) {
+    static void help(CommandSender commandSender, String commandName, String commandDescription, String firstArg,
+                     Map<String, Method> subcommands) {
         Map<String, Method> availableSubcommands = new HashMap<>();
         for (Map.Entry<String, Method> methodEntry : subcommands.entrySet()) {
             Method m = methodEntry.getValue();
@@ -39,7 +40,7 @@ class Help {
             }
         }
         if (firstArg == null) {
-            generalHelp(commandSender, commandName, availableSubcommands);
+            generalHelp(commandSender, commandName, commandDescription, availableSubcommands);
         } else {
             Method subcommandMethod = availableSubcommands.get(firstArg);
             if (subcommandMethod == null) {
@@ -57,16 +58,25 @@ class Help {
      * Display general command description and list of subcommands.
      * @param commandSender command sender
      * @param commandName command name
+     * @param commandDescription command description
      * @param subcommands available subcommands
      */
-    private static void generalHelp(CommandSender commandSender, String commandName,
+    private static void generalHelp(CommandSender commandSender, String commandName, String commandDescription,
                                     Map<String, Method> subcommands) {
         List<Map.Entry<String, Method>> subcommandsSorted = new ArrayList<>(subcommands.entrySet());
         subcommandsSorted.sort(Map.Entry.comparingByKey());
-        if (subcommandsSorted.isEmpty()) {
+        if (subcommandsSorted.isEmpty() && (commandDescription == null || commandDescription.isEmpty())) {
             commandSender.sendMessage(new MessageBuilder()
                     .color(ChatColor.RED).append("No help is available").resetColor().build());
         } else {
+            if (commandDescription != null && !commandDescription.isEmpty()) {
+                commandSender.sendMessage(
+                        new MessageBuilder()
+                                .color(ChatColor.AQUA).append("[")
+                                .color(ChatColor.GREEN).append(commandName)
+                                .color(ChatColor.AQUA).append("] ").append(commandDescription)
+                                .build());
+            }
             int i = 0;
             if (subcommandsSorted.get(0).getKey().isEmpty()) {
                 detailedHelp(commandSender, commandName, null, subcommandsSorted.get(0).getValue());

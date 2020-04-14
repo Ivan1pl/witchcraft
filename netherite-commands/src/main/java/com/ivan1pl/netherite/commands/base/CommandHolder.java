@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 class CommandHolder {
     private final NetheritePlugin netheritePlugin;
     private final String commandName;
+    private final String commandDescription;
     private final Object commandObject;
     private final Map<String, Method> subcommands = new HashMap<>();
 
@@ -33,13 +34,15 @@ class CommandHolder {
      * Create new instance.
      * @param netheritePlugin plugin instance
      * @param commandName command name
+     * @param commandDescription command description
      * @param commandClass command class
      */
-    CommandHolder(NetheritePlugin netheritePlugin, String commandName, Class<?> commandClass)
+    CommandHolder(NetheritePlugin netheritePlugin, String commandName, String commandDescription, Class<?> commandClass)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException,
             CommandAlreadyExistsException {
         this.netheritePlugin = netheritePlugin;
         this.commandName = commandName;
+        this.commandDescription = commandDescription;
         this.commandObject = commandClass.getConstructor().newInstance();
         initSubcommands();
     }
@@ -88,7 +91,8 @@ class CommandHolder {
                 int argsIndex = subCommandName.isEmpty() ? 0 : 1;
                 if (subCommandName.equals(first) || subCommandName.isEmpty()) {
                     if ("help".equalsIgnoreCase(first) && subcommands.get("help") == null) {
-                        Help.help(commandSender, commandName, args.length > 1 ? args[1] : null, subcommands);
+                        Help.help(commandSender, commandName, commandDescription, args.length > 1 ? args[1] : null,
+                                subcommands);
                         return true;
                     } else {
                         executionStatus = ExecutionStatus.max(executionStatus,
@@ -124,7 +128,8 @@ class CommandHolder {
                     .build());
             return true;
         }
-        return false;
+        Help.help(commandSender, commandName, commandDescription, null, subcommands);
+        return true;
     }
 
     /**

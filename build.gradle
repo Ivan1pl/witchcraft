@@ -1,5 +1,5 @@
-group 'com.ivan1pl.netherite'
-version '0.1.1'
+group 'com.ivan1pl.witchcraft'
+version '0.2.0'
 
 ext {
     spigotVersion = '1.13.2-R0.1-SNAPSHOT'
@@ -7,11 +7,12 @@ ext {
 }
 
 allprojects {
+
     apply plugin: 'java-library'
     apply plugin: 'maven-publish'
 
-    group 'com.ivan1pl.netherite'
-    version '0.1.1'
+    group 'com.ivan1pl.witchcraft'
+    version '0.2.0'
 
     sourceCompatibility = 1.8
 
@@ -23,6 +24,7 @@ allprojects {
     }
 
     tasks.withType(JavaCompile) {
+        inputs.files configurations.runtime
         options.compilerArgs << '-parameters'
     }
 

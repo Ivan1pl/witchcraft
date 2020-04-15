@@ -1,6 +1,7 @@
-rootProject.name = 'netherite'
-include 'netherite-core'
-include 'netherite-commands'
-include 'netherite-plugin-generator'
-include 'netherite-examples'
+rootProject.name = 'witchcraft'
+include 'witchcraft-core'
+include 'witchcraft-commands'
+include 'witchcraft-plugin'
+include 'witchcraft-plugin-generator'
+include 'witchcraft-examples'
 

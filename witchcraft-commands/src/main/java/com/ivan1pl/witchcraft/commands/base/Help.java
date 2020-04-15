@@ -39,51 +39,50 @@ class Help {
                 }
             }
         }
+        MessageBuilder messageBuilder = new MessageBuilder();
         if (firstArg == null) {
-            generalHelp(commandSender, commandName, commandDescription, availableSubcommands);
+            generalHelp(commandName, commandDescription, availableSubcommands, messageBuilder);
         } else {
             Method subcommandMethod = availableSubcommands.get(firstArg);
             if (subcommandMethod == null) {
-                commandSender.sendMessage(new MessageBuilder()
+                messageBuilder
                         .color(ChatColor.RED)
                         .append("No help available for '").append(firstArg).append("'")
-                        .resetColor().build());
+                        .resetColor();
             } else {
-                detailedHelp(commandSender, commandName, firstArg, subcommandMethod);
+                detailedHelp(commandName, firstArg, subcommandMethod, messageBuilder);
             }
         }
+        commandSender.sendMessage(messageBuilder.build());
     }
 
     /**
      * Display general command description and list of subcommands.
-     * @param commandSender command sender
      * @param commandName command name
      * @param commandDescription command description
      * @param subcommands available subcommands
+     * @param messageBuilder message builder
      */
-    private static void generalHelp(CommandSender commandSender, String commandName, String commandDescription,
-                                    Map<String, Method> subcommands) {
+    private static void generalHelp(String commandName, String commandDescription, Map<String, Method> subcommands,
+                                    MessageBuilder messageBuilder) {
         List<Map.Entry<String, Method>> subcommandsSorted = new ArrayList<>(subcommands.entrySet());
         subcommandsSorted.sort(Map.Entry.comparingByKey());
         if (subcommandsSorted.isEmpty() && (commandDescription == null || commandDescription.isEmpty())) {
-            commandSender.sendMessage(new MessageBuilder()
-                    .color(ChatColor.RED).append("No help is available").resetColor().build());
+            messageBuilder.color(ChatColor.RED).append("No help is available").resetColor();
         } else {
             if (commandDescription != null && !commandDescription.isEmpty()) {
-                commandSender.sendMessage(
-                        new MessageBuilder()
-                                .color(ChatColor.AQUA).append("[")
-                                .color(ChatColor.GREEN).append(commandName)
-                                .color(ChatColor.AQUA).append("] ").append(commandDescription)
-                                .build());
+                messageBuilder
+                        .color(ChatColor.AQUA).append("[")
+                        .color(ChatColor.GREEN).append(commandName)
+                        .color(ChatColor.AQUA).append("] ").append(commandDescription);
             }
             int i = 0;
             if (subcommandsSorted.get(0).getKey().isEmpty()) {
-                detailedHelp(commandSender, commandName, null, subcommandsSorted.get(0).getValue());
+                detailedHelp(commandName, null, subcommandsSorted.get(0).getValue(), messageBuilder);
                 i++;
             }
             if (subcommandsSorted.size() > i) {
-                MessageBuilder messageBuilder = new MessageBuilder()
+                messageBuilder
                         .color(ChatColor.AQUA).append("Use ")
                         .color(ChatColor.DARK_RED).append(commandName).append(" help <")
                         .color(ChatColor.RED).append("subcommand name").color(ChatColor.DARK_RED).append(">")
@@ -107,22 +106,20 @@ class Help {
                     }
                     messageBuilder.resetColor().newLine();
                 }
-                commandSender.sendMessage(messageBuilder.build());
             }
         }
     }
 
     /**
      * Display detailed description of a specific subcommand.
-     * @param commandSender command sender
      * @param commandName command name
      * @param subcommandName subcommand name
      * @param commandMethod subcommand method
+     * @param messageBuilder message builder
      */
-    private static void detailedHelp(CommandSender commandSender, String commandName, String subcommandName,
-                                     Method commandMethod) {
-        MessageBuilder messageBuilder = new MessageBuilder().color(ChatColor.AQUA).append("> ")
-                .color(ChatColor.GREEN).append(commandName);
+    private static void detailedHelp(String commandName, String subcommandName, Method commandMethod,
+                                     MessageBuilder messageBuilder) {
+        messageBuilder.color(ChatColor.AQUA).append("> ").color(ChatColor.GREEN).append(commandName);
         if (subcommandName != null && !subcommandName.isEmpty()) {
             messageBuilder.append(" ").append(subcommandName);
         }
@@ -148,6 +145,5 @@ class Help {
         if (!longDescription.isEmpty()) {
             messageBuilder.color(ChatColor.AQUA).append(longDescription).resetColor().newLine();
         }
-        commandSender.sendMessage(messageBuilder.build());
     }
 }

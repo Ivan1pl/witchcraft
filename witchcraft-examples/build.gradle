@@ -5,7 +5,7 @@ repositories {
 dependencies {
     annotationProcessor project(':witchcraft-plugin-generator')
     compile project(':witchcraft-plugin')
-    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: spigotVersion
+    compileOnly group: 'org.bukkit', name: 'bukkit', version: spigotVersion
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 

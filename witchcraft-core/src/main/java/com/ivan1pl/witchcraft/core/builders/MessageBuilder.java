@@ -28,6 +28,14 @@ public class MessageBuilder {
     }
 
     /**
+     * Reset all formatting.
+     * @return builder instance
+     */
+    public MessageBuilder reset() {
+        return resetColor();
+    }
+
+    /**
      * Append text.
      * @param value text to append
      * @return builder instance

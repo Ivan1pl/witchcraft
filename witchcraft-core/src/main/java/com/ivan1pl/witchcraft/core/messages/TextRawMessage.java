@@ -8,7 +8,7 @@ public class TextRawMessage extends BaseRawMessage {
      * A string representing raw text to display directly in chat. Can use escape characters, such as {@code \n} for
      * newline (enter), {@code \t} for tab, etc.
      */
-    private String text;
+    private String text = "";
 
     /**
      * Get text.

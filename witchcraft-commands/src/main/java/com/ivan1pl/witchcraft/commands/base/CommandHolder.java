@@ -93,7 +93,7 @@ class CommandHolder {
                 if (subCommandName.equals(first) || subCommandName.isEmpty()) {
                     if ("help".equalsIgnoreCase(first) && subcommands.get("help") == null) {
                         Help.help(commandSender, commandName, commandDescription, args.length > 1 ? args[1] : null,
-                                subcommands);
+                                args.length > 2 ? args[2] : null, subcommands);
                         return true;
                     } else {
                         executionStatus = ExecutionStatus.max(executionStatus,
@@ -129,7 +129,7 @@ class CommandHolder {
                     .build());
             return true;
         }
-        Help.help(commandSender, commandName, commandDescription, null, subcommands);
+        Help.help(commandSender, commandName, commandDescription, null, null, subcommands);
         return true;
     }
 

@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Base builder class for raw JSON messages.
  */
-public abstract class BaseRawMessageBuilder {
+public abstract class BaseRawMessageBuilder<T> {
     /**
      * All message components.
      */
@@ -27,9 +27,10 @@ public abstract class BaseRawMessageBuilder {
      * @param value text to append
      * @return builder instance
      */
-    public BaseRawMessageBuilder append(String value) {
+    @SuppressWarnings("unchecked")
+    public T append(String value) {
         if (value == null || value.isEmpty()) {
-            return this;
+            return (T) this;
         }
         if (current == null) {
             current = new TextRawMessage();
@@ -41,7 +42,7 @@ public abstract class BaseRawMessageBuilder {
         }
         TextRawMessage currentText = (TextRawMessage) current;
         currentText.setText(currentText.getText() + value);
-        return this;
+        return (T) this;
     }
 
     /**
@@ -49,9 +50,10 @@ public abstract class BaseRawMessageBuilder {
      * @param value keybind to append
      * @return builder instance
      */
-    public BaseRawMessageBuilder append(Keybind value) {
+    @SuppressWarnings("unchecked")
+    public T append(Keybind value) {
         if (value == null) {
-            return this;
+            return (T) this;
         }
         if (current == null) {
             current = new KeybindRawMessage();
@@ -63,7 +65,7 @@ public abstract class BaseRawMessageBuilder {
         }
         KeybindRawMessage currentKeybind = (KeybindRawMessage) current;
         currentKeybind.setKeybind(value);
-        return this;
+        return (T) this;
     }
 
     /**
@@ -71,9 +73,10 @@ public abstract class BaseRawMessageBuilder {
      * @param value score to append
      * @return builder instance
      */
-    public BaseRawMessageBuilder append(Score value) {
+    @SuppressWarnings("unchecked")
+    public T append(Score value) {
         if (value == null) {
-            return this;
+            return (T) this;
         }
         if (current == null) {
             current = new ScoreRawMessage();
@@ -85,7 +88,7 @@ public abstract class BaseRawMessageBuilder {
         }
         ScoreRawMessage currentScore = (ScoreRawMessage) current;
         currentScore.setScore(value);
-        return this;
+        return (T) this;
     }
 
     /**
@@ -93,9 +96,10 @@ public abstract class BaseRawMessageBuilder {
      * @param value selector to append
      * @return builder instance
      */
-    public BaseRawMessageBuilder appendSelector(String value) {
+    @SuppressWarnings("unchecked")
+    public T appendSelector(String value) {
         if (value == null) {
-            return this;
+            return (T) this;
         }
         if (current == null) {
             current = new SelectorRawMessage();
@@ -107,7 +111,7 @@ public abstract class BaseRawMessageBuilder {
         }
         SelectorRawMessage currentSelector = (SelectorRawMessage) current;
         currentSelector.setSelector(value);
-        return this;
+        return (T) this;
     }
 
     /**
@@ -119,10 +123,10 @@ public abstract class BaseRawMessageBuilder {
      * @param storage namespaced ID of the command storage
      * @return builder instance
      */
-    public BaseRawMessageBuilder appendNbt(String value, boolean interpret, String block, String entity,
-                                           String storage) {
+    @SuppressWarnings("unchecked")
+    public T appendNbt(String value, boolean interpret, String block, String entity, String storage) {
         if (value == null) {
-            return this;
+            return (T) this;
         }
         if (current == null) {
             current = new NbtRawMessage();
@@ -138,7 +142,7 @@ public abstract class BaseRawMessageBuilder {
         currentNbt.setBlock(block);
         currentNbt.setEntity(entity);
         currentNbt.setStorage(storage);
-        return this;
+        return (T) this;
     }
 
     /**
@@ -147,9 +151,10 @@ public abstract class BaseRawMessageBuilder {
      * @param parameters translation parameters
      * @return builder instance
      */
-    public BaseRawMessageBuilder appendTranslation(String value, BaseRawMessage... parameters) {
+    @SuppressWarnings("unchecked")
+    public T appendTranslation(String value, BaseRawMessage... parameters) {
         if (value == null || value.isEmpty()) {
-            return this;
+            return (T) this;
         }
         if (current == null) {
             current = new TranslationRawMessage();
@@ -167,7 +172,7 @@ public abstract class BaseRawMessageBuilder {
             }
             Collections.addAll(currentTranslation.getWith(), parameters);
         }
-        return this;
+        return (T) this;
     }
 
     /**
@@ -175,7 +180,8 @@ public abstract class BaseRawMessageBuilder {
      * @param chatColor new color
      * @return builder instance
      */
-    public BaseRawMessageBuilder color(ChatColor chatColor) {
+    @SuppressWarnings("unchecked")
+    public T color(ChatColor chatColor) {
         if (chatColor == null) {
             chatColor = ChatColor.RESET;
         }
@@ -183,19 +189,28 @@ public abstract class BaseRawMessageBuilder {
             current = new TextRawMessage();
             components.add(current);
         } else if (current.getColor() == chatColor) {
-            return this;
+            return (T) this;
         } else if (!current.isEmpty()) {
             newCurrent(new TextRawMessage());
         }
         current.setColor(chatColor);
-        return this;
+        return (T) this;
+    }
+
+    /**
+     * Set message color.
+     * @param chatColor new color
+     * @return builder instance
+     */
+    public T color(org.bukkit.ChatColor chatColor) {
+        return color(ChatColor.valueOf(chatColor));
     }
 
     /**
      * Reset message color to default.
      * @return builder instance
      */
-    public BaseRawMessageBuilder resetColor() {
+    public T resetColor() {
         return color(ChatColor.RESET);
     }
 
@@ -204,24 +219,25 @@ public abstract class BaseRawMessageBuilder {
      * @param bold bold modifier
      * @return builder instance
      */
-    public BaseRawMessageBuilder bold(boolean bold) {
+    @SuppressWarnings("unchecked")
+    public T bold(boolean bold) {
         if (current == null) {
             current = new TextRawMessage();
             components.add(current);
         } else if (current.getBold() != null && current.getBold() == bold) {
-            return this;
+            return (T) this;
         } else if (!current.isEmpty()) {
             newCurrent(new TextRawMessage());
         }
         current.setBold(bold);
-        return this;
+        return (T) this;
     }
 
     /**
      * Render text in bold.
      * @return builder instance
      */
-    public BaseRawMessageBuilder bold() {
+    public T bold() {
         return bold(true);
     }
 
@@ -230,24 +246,25 @@ public abstract class BaseRawMessageBuilder {
      * @param italic italic modifier
      * @return builder instance
      */
-    public BaseRawMessageBuilder italic(boolean italic) {
+    @SuppressWarnings("unchecked")
+    public T italic(boolean italic) {
         if (current == null) {
             current = new TextRawMessage();
             components.add(current);
         } else if (current.getItalic() != null && current.getItalic() == italic) {
-            return this;
+            return (T) this;
         } else if (!current.isEmpty()) {
             newCurrent(new TextRawMessage());
         }
         current.setItalic(italic);
-        return this;
+        return (T) this;
     }
 
     /**
      * Render text in italics.
      * @return builder instance
      */
-    public BaseRawMessageBuilder italic() {
+    public T italic() {
         return italic(true);
     }
 
@@ -256,24 +273,25 @@ public abstract class BaseRawMessageBuilder {
      * @param underlined underlined modifier
      * @return builder instance
      */
-    public BaseRawMessageBuilder underlined(boolean underlined) {
+    @SuppressWarnings("unchecked")
+    public T underlined(boolean underlined) {
         if (current == null) {
             current = new TextRawMessage();
             components.add(current);
         } else if (current.getUnderlined() != null && current.getUnderlined() == underlined) {
-            return this;
+            return (T) this;
         } else if (!current.isEmpty()) {
             newCurrent(new TextRawMessage());
         }
         current.setUnderlined(underlined);
-        return this;
+        return (T) this;
     }
 
     /**
      * Render text underlined.
      * @return builder instance
      */
-    public BaseRawMessageBuilder underlined() {
+    public T underlined() {
         return underlined(true);
     }
 
@@ -282,24 +300,25 @@ public abstract class BaseRawMessageBuilder {
      * @param strikethrough strikethrough modifier
      * @return builder instance
      */
-    public BaseRawMessageBuilder strikethrough(boolean strikethrough) {
+    @SuppressWarnings("unchecked")
+    public T strikethrough(boolean strikethrough) {
         if (current == null) {
             current = new TextRawMessage();
             components.add(current);
         } else if (current.getStrikethrough() != null && current.getStrikethrough() == strikethrough) {
-            return this;
+            return (T) this;
         } else if (!current.isEmpty()) {
             newCurrent(new TextRawMessage());
         }
         current.setStrikethrough(strikethrough);
-        return this;
+        return (T) this;
     }
 
     /**
      * Render text with a strikethrough.
      * @return builder instance
      */
-    public BaseRawMessageBuilder strikethrough() {
+    public T strikethrough() {
         return strikethrough(true);
     }
 
@@ -308,24 +327,25 @@ public abstract class BaseRawMessageBuilder {
      * @param obfuscated obfuscated modifier
      * @return builder instance
      */
-    public BaseRawMessageBuilder obfuscated(boolean obfuscated) {
+    @SuppressWarnings("unchecked")
+    public T obfuscated(boolean obfuscated) {
         if (current == null) {
             current = new TextRawMessage();
             components.add(current);
         } else if (current.getObfuscated() != null && current.getObfuscated() == obfuscated) {
-            return this;
+            return (T) this;
         } else if (!current.isEmpty()) {
             newCurrent(new TextRawMessage());
         }
         current.setObfuscated(obfuscated);
-        return this;
+        return (T) this;
     }
 
     /**
      * Render text obfuscated.
      * @return builder instance
      */
-    public BaseRawMessageBuilder obfuscated() {
+    public T obfuscated() {
         return obfuscated(true);
     }
 
@@ -335,7 +355,8 @@ public abstract class BaseRawMessageBuilder {
      * @param insertion insertion
      * @return builder instance
      */
-    public BaseRawMessageBuilder insertion(String insertion) {
+    @SuppressWarnings("unchecked")
+    public T insertion(String insertion) {
         if (current == null) {
             current = new TextRawMessage();
             components.add(current);
@@ -343,14 +364,14 @@ public abstract class BaseRawMessageBuilder {
             newCurrent(new TextRawMessage());
         }
         current.setInsertion(insertion);
-        return this;
+        return (T) this;
     }
 
     /**
      * Break line.
      * @return builder instance
      */
-    public BaseRawMessageBuilder newLine() {
+    public T newLine() {
         return append("\n");
     }
 
@@ -358,9 +379,10 @@ public abstract class BaseRawMessageBuilder {
      * Reset all formatting.
      * @return builder instance
      */
-    public BaseRawMessageBuilder reset() {
+    @SuppressWarnings("unchecked")
+    public T reset() {
         current = null;
-        return this;
+        return (T) this;
     }
 
     /**

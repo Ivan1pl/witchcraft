@@ -1,4 +1,4 @@
-package com.ivan1pl.witchcraft.commands.annotations;
+package com.ivan1pl.witchcraft.core.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,8 +12,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Plugin {
     /**
-     * Package-scan path. All classes within this package or any of its subpackages will be scanned for a
-     * {@link Command} annotation. Defaults to the package holding the plugin class.
+     * Package-scan path. All classes within this package or any of its subpackages will be scanned for commands.
+     * Defaults to the package holding the plugin class.
      */
     String basePackage() default "";
 }

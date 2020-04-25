@@ -131,4 +131,18 @@ public enum ChatColor {
     public String getKey() {
         return key;
     }
+
+    /**
+     * Convert Bukkit's ChatColor to WitchCraft's ChatColor.
+     * @param chatColor Bukkit's ChatColor
+     * @return WitchCraft's ChatColor
+     */
+    public static ChatColor valueOf(org.bukkit.ChatColor chatColor) {
+        for (ChatColor color : values()) {
+            if (color.getBukkitColor() == chatColor) {
+                return color;
+            }
+        }
+        return null;
+    }
 }

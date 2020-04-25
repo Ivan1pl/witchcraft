@@ -11,7 +11,7 @@ import com.ivan1pl.witchcraft.plugin.WitchCraftPlugin;
  */
 @PluginData(
         name = "witchcraft-example",
-        version = "0.3.0",
+        version = "0.4.0",
         description = "Example plugin built with WitchCraft Framework",
         apiVersion = "1.13",
         authors = "Ivan1pl",

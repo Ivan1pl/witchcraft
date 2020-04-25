@@ -19,6 +19,16 @@ public class MessageBuilder {
     }
 
     /**
+     * Set message color.
+     * @param chatColor new color
+     * @return builder instance
+     */
+    public MessageBuilder color(com.ivan1pl.witchcraft.core.messages.ChatColor chatColor) {
+        builder.append(chatColor.getBukkitColor().toString());
+        return this;
+    }
+
+    /**
      * Reset message color to default.
      * @return builder instance
      */

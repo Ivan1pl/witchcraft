@@ -1,4 +1,4 @@
-package com.ivan1pl.witchcraft.core.annotations;
+package com.ivan1pl.witchcraft.context.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

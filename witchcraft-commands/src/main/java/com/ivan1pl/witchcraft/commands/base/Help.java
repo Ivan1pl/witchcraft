@@ -2,6 +2,7 @@ package com.ivan1pl.witchcraft.commands.base;
 
 import com.google.gson.Gson;
 import com.ivan1pl.witchcraft.commands.annotations.Optional;
+import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.core.builders.BaseRawMessageBuilder;
 import com.ivan1pl.witchcraft.core.builders.ComplexRawMessageBuilder;
 import com.ivan1pl.witchcraft.core.builders.MessageBuilder;

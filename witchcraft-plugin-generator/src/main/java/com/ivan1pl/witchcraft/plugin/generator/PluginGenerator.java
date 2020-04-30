@@ -1,7 +1,7 @@
 package com.ivan1pl.witchcraft.plugin.generator;
 
 import com.ivan1pl.witchcraft.commands.annotations.Command;
-import com.ivan1pl.witchcraft.commands.annotations.ConfigurationValue;
+import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.commands.annotations.Optional;
 import com.ivan1pl.witchcraft.commands.annotations.Sender;
 import com.ivan1pl.witchcraft.commands.annotations.SubCommand;

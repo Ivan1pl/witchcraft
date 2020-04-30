@@ -2,6 +2,7 @@ package com.ivan1pl.witchcraft.commands.base;
 
 import com.ivan1pl.witchcraft.commands.annotations.*;
 import com.ivan1pl.witchcraft.commands.exceptions.CommandAlreadyExistsException;
+import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.core.builders.MessageBuilder;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.ChatColor;

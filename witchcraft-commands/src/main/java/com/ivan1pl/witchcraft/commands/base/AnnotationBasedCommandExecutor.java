@@ -1,8 +1,8 @@
 package com.ivan1pl.witchcraft.commands.base;
 
-import com.ivan1pl.witchcraft.core.annotations.Plugin;
 import com.ivan1pl.witchcraft.commands.exceptions.CommandAlreadyExistsException;
 import com.ivan1pl.witchcraft.commands.exceptions.CommandDefinitionNotFoundException;
+import com.ivan1pl.witchcraft.context.annotations.Plugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;

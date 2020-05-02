@@ -1,5 +1,6 @@
 package com.ivan1pl.witchcraft.plugin;
 
+import com.ivan1pl.witchcraft.commands.CommandsPackageScan;
 import com.ivan1pl.witchcraft.commands.annotations.Command;
 import com.ivan1pl.witchcraft.commands.base.AnnotationBasedCommandExecutor;
 import com.ivan1pl.witchcraft.commands.exceptions.CommandAlreadyExistsException;
@@ -67,7 +68,11 @@ public class WitchCraftPlugin extends JavaPlugin {
         if (plugin != null && !plugin.basePackage().isEmpty()) {
             basePackage = plugin.basePackage();
         }
-        return new WitchCraftContext(pluginInstance, basePackage, Managed.class, Command.class);
+        String[] basePackages = new String[] {
+                basePackage,
+                CommandsPackageScan.class.getPackage().getName()
+        };
+        return new WitchCraftContext(pluginInstance, basePackages, Managed.class, Command.class);
     }
 
     /**

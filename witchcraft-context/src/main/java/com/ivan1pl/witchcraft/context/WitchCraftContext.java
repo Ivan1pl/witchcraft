@@ -18,7 +18,7 @@ import java.util.*;
  */
 public final class WitchCraftContext {
     private final JavaPlugin javaPlugin;
-    private final String basePackage;
+    private final String[] basePackages;
     private final List<Class<? extends Annotation>> annotations;
     private final Map<String, List<Object>> context = new HashMap<>();
 
@@ -28,28 +28,28 @@ public final class WitchCraftContext {
      */
     public WitchCraftContext(JavaPlugin javaPlugin) {
         this(javaPlugin, javaPlugin.getClass().getPackage() == null ?
-                null : javaPlugin.getClass().getPackage().getName());
+                new String[0] : new String[] { javaPlugin.getClass().getPackage().getName() });
     }
 
     /**
      * Create new context for given plugin.
      * @param javaPlugin plugin instance
-     * @param basePackage package scan path
+     * @param basePackages package scan path
      */
-    public WitchCraftContext(JavaPlugin javaPlugin, String basePackage) {
-        this(javaPlugin, basePackage, Managed.class);
+    public WitchCraftContext(JavaPlugin javaPlugin, String[] basePackages) {
+        this(javaPlugin, basePackages, Managed.class);
     }
 
     /**
      * Create new context for given plugin.
      * @param javaPlugin plugin instance
-     * @param basePackage package scan path
+     * @param basePackages package scan path
      * @param annotations annotations marking managed classes
      */
     @SafeVarargs
-    public WitchCraftContext(JavaPlugin javaPlugin, String basePackage, Class<? extends Annotation>... annotations) {
+    public WitchCraftContext(JavaPlugin javaPlugin, String[] basePackages, Class<? extends Annotation>... annotations) {
         this.javaPlugin = javaPlugin;
-        this.basePackage = basePackage;
+        this.basePackages = basePackages;
         this.annotations = Arrays.asList(annotations);
     }
 
@@ -58,11 +58,13 @@ public final class WitchCraftContext {
      * @throws InitializationFailedException when WitchCraft is unable to initialize context
      */
     public void init() throws InitializationFailedException {
-        javaPlugin.getLogger().info(String.format("Starting package scan for package: %s", basePackage));
+        List<Class<?>> classes = new LinkedList<>();
         try {
-            List<Class<?>> classes = new LinkedList<>();
-            for (Class<? extends Annotation> annotation : annotations) {
-                classes.addAll(new Reflections(basePackage).getTypesAnnotatedWith(annotation));
+            for (String basePackage : basePackages) {
+                javaPlugin.getLogger().info(String.format("Starting package scan for package: %s", basePackage));
+                for (Class<? extends Annotation> annotation : annotations) {
+                    classes.addAll(new Reflections(basePackage).getTypesAnnotatedWith(annotation));
+                }
             }
             Queue<Class<?>> creationQueue = new CreationQueueBuilder(javaPlugin, classes).createQueue();
 

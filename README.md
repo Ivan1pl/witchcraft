@@ -33,13 +33,9 @@ executor.
 
 ## Setup
 
-You can either let WitchCraft do all the work for you, or in more advanced cases you can manually tell it to enable command management.
-
-### Automatic setup
-
 You will need to add `witchcraft-plugin` library to your project.
 
-#### Maven
+### Maven
 
 Add dependency on `witchcraft-plugin`:
 ```xml
@@ -53,7 +49,7 @@ Add dependency on `witchcraft-plugin`:
 </dependencies>
 ```
 
-#### Gradle
+### Gradle
 
 Add dependency on `witchcraft-plugin`:
 ```gradle
@@ -62,7 +58,7 @@ dependencies {
 }
 ```
 
-#### Setup
+### Setup
 
 Then simply extend `WitchCraftPlugin` instead of `JavaPlugin` in your main plugin class. That's it.
 
@@ -74,70 +70,17 @@ public class WitchCraftExamplePlugin extends WitchCraftPlugin {
 }
 ```
 
-### Manual setup
+### Additional logic during initialization
 
-If for some reason you want to manually enable command management (for example if you want to deal with some configuration before the commands are enabled), you can use `AnnotationBasedCommandExecutor` class.
+You may want to add some logic during plugin initialization. The method `onEnable` has been marked as `final` which means you can no longer override it. Two other methods have been provided instead: `preInit` and `postInit`. The first one is invoked before WitchCraft initializes (before the plugin is scanned for commands and before dependency injection). The second one is invoked after WitchCraft initializes.
 
-You will need to add `witchcraft-commands` library to your project.
-
-#### Maven
-
-Add dependency on `witchcraft-commands`:
-```xml
-<dependencies>
-    <dependency>
-        <groupId>com.ivan1pl.witchcraft</groupId>
-        <artifactId>witchcraft-commands</artifactId>
-        <version>0.4.0</version>
-        <scope>compile</scope>
-    </dependency>
-</dependencies>
-```
-
-#### Gradle
-
-Add dependency on `witchcraft-commands`:
-```gradle
-dependencies {
-    compile "com.ivan1pl.witchcraft:witchcraft-commands:0.4.0"
-}
-```
-
-#### Setup
-
-This is how you can use `AnnotationBasedCommandExecutor`:
-
+A natural use for `preInit` method is saving default config:
 ```java
-public class SomePlugin extends JavaPlugin {
-    private AnnotationBasedCommandExecutor annotationBasedCommandExecutor;
-
-    @Override
-    public void onEnable() {
-        super.onEnable();
-
-        // (...) do some stuff you want to deal with before the commands are enabled
-
-        try {
-            annotationBasedCommandExecutor = new AnnotationBasedCommandExecutor(this);
-        } catch (Exception e) {
-            getLogger().severe("Failed to initialize command executor, the plugin will not be enabled\n" +
-                    ExceptionUtils.getFullStackTrace(e));
-            setEnabled(false);
-        }
-    }
-
-    @Override
-    public void onDisable() {
-        super.onDisable();
-        if (annotationBasedCommandExecutor != null) {
-            annotationBasedCommandExecutor.disable();
-            annotationBasedCommandExecutor = null;
-        }
-    }
+@Override
+protected void preInit() {
+    saveDefaultConfig();
 }
 ```
-
-Don't forget to use `setEnabled(false)` if there is an error, this way you will not miss any failures because the plugin simply will not load in such cases. Otherwise it will appear as loaded but none of the commands will work.
 
 ## Commands and subcommands
 

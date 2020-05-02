@@ -199,7 +199,7 @@ For other parameters, this is a (still growing) list of all currently supported 
 * `Double`
 * `Player`
 
-But even here, if a type is not yet supported, the framework provides a way to use it. You can use the annotation `@Adapter` and create a class implementing the `TypeAdapter` interface. The interface contains only one method `Object convert(String arg)` which provides a way to convert a `String` value to your desired type.
+But even here, if a type is not yet supported, the framework provides a way to use it. You can use the annotation `@Adapter` and create a class implementing the `TypeAdapter` interface and annotated with `@Managed` annotation. The interface contains only one method `Object convert(String arg)` which provides a way to convert a `String` value to your desired type. Your class should be located in the same package tree as your plugin class (or the one indicated by `@Plugin` annotation if you use it) and should contain a single public constructor with parameters supported by dependency injection feature.
 
 ### Tab completion
 

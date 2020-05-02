@@ -1,7 +1,9 @@
 package com.ivan1pl.witchcraft.commands.base;
 
+import com.google.common.primitives.Primitives;
 import com.ivan1pl.witchcraft.commands.annotations.*;
 import com.ivan1pl.witchcraft.commands.exceptions.CommandAlreadyExistsException;
+import com.ivan1pl.witchcraft.context.WitchCraftContext;
 import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.core.builders.MessageBuilder;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -35,17 +37,19 @@ class CommandHolder {
     /**
      * Create new instance.
      * @param javaPlugin plugin instance
+     * @param witchCraftContext dependency injection context
      * @param commandName command name
      * @param commandDescription command description
      * @param commandClass command class
+     * @throws CommandAlreadyExistsException when there are several subcommands with the same name
      */
-    CommandHolder(JavaPlugin javaPlugin, String commandName, String commandDescription, Class<?> commandClass)
-            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException,
-            CommandAlreadyExistsException {
+    CommandHolder(JavaPlugin javaPlugin, WitchCraftContext witchCraftContext, String commandName,
+                  String commandDescription, Class<?> commandClass)
+            throws CommandAlreadyExistsException {
         this.javaPlugin = javaPlugin;
         this.commandName = commandName;
         this.commandDescription = commandDescription;
-        this.commandObject = commandClass.getConstructor().newInstance();
+        this.commandObject = witchCraftContext.get(commandClass);
         initSubcommands();
     }
 
@@ -164,7 +168,7 @@ class CommandHolder {
                 ConfigurationValue configurationValue = parameter.getAnnotation(ConfigurationValue.class);
                 if (configurationValue != null) {
                     params[i] = javaPlugin.getConfig().getObject(
-                            configurationValue.value(), parameter.getType(), null);
+                            configurationValue.value(), Primitives.wrap(parameter.getType()), null);
                 } else {
                     String value;
                     if (argsIndex < args.length) {

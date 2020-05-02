@@ -2,6 +2,7 @@ package com.ivan1pl.witchcraft.commands.base;
 
 import com.ivan1pl.witchcraft.commands.exceptions.CommandAlreadyExistsException;
 import com.ivan1pl.witchcraft.commands.exceptions.CommandDefinitionNotFoundException;
+import com.ivan1pl.witchcraft.context.WitchCraftContext;
 import com.ivan1pl.witchcraft.context.annotations.Plugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -22,17 +23,20 @@ public class AnnotationBasedCommandExecutor implements TabExecutor {
     /**
      * Default constructor.
      * @param javaPlugin plugin instance
+     * @param witchCraftContext dependency injection context
+     * @throws CommandAlreadyExistsException when there are several commands with the same name, or there are several
+     *                                       subcommands with the same name within a single command
+     * @throws CommandDefinitionNotFoundException when command definition does not exist in {@code plugin.yml} file
      */
-    public AnnotationBasedCommandExecutor(JavaPlugin javaPlugin) throws CommandAlreadyExistsException,
-            InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException,
-            CommandDefinitionNotFoundException {
+    public AnnotationBasedCommandExecutor(JavaPlugin javaPlugin, WitchCraftContext witchCraftContext)
+            throws CommandAlreadyExistsException, CommandDefinitionNotFoundException {
         String basePackage = javaPlugin.getClass().getPackage() == null ?
                 null : javaPlugin.getClass().getPackage().getName();
         Plugin plugin = javaPlugin.getClass().getAnnotation(Plugin.class);
         if (plugin != null && !plugin.basePackage().isEmpty()) {
             basePackage = plugin.basePackage();
         }
-        javaPlugin.getLogger().info(String.format("Starting package scan for package: %s", basePackage));
+        javaPlugin.getLogger().info(String.format("Starting command scan for package: %s", basePackage));
         Set<Class<?>> commands = new Reflections(basePackage)
                 .getTypesAnnotatedWith(com.ivan1pl.witchcraft.commands.annotations.Command.class);
         for (Class<?> commandClass : commands) {
@@ -45,8 +49,8 @@ public class AnnotationBasedCommandExecutor implements TabExecutor {
                     throw new CommandAlreadyExistsException(
                             String.format("Command %s already exists", command.name().toLowerCase()));
                 }
-                holder = new CommandHolder(javaPlugin, command.name().toLowerCase(), command.description(),
-                        commandClass);
+                holder = new CommandHolder(javaPlugin, witchCraftContext, command.name().toLowerCase(),
+                        command.description(), commandClass);
                 this.commands.put(command.name().toLowerCase(), holder);
                 javaPlugin.getLogger().info(String.format("Registered command: %s", command.name().toLowerCase()));
                 PluginCommand pluginCommand = javaPlugin.getCommand(command.name().toLowerCase());

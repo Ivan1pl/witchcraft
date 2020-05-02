@@ -6,9 +6,6 @@ import com.ivan1pl.witchcraft.core.annotations.PermissionDefault;
 import com.ivan1pl.witchcraft.core.annotations.PluginData;
 import com.ivan1pl.witchcraft.plugin.WitchCraftPlugin;
 
-/**
- * Base plugin class.
- */
 @PluginData(
         name = "witchcraft-example",
         version = "0.4.0",
@@ -45,4 +42,8 @@ import com.ivan1pl.witchcraft.plugin.WitchCraftPlugin;
                         defaultValue = PermissionDefault.TRUE)
         })
 public class WitchCraftExamplePlugin extends WitchCraftPlugin {
+    @Override
+    protected void preInit() {
+        saveDefaultConfig();
+    }
 }

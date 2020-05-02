@@ -1,5 +1,6 @@
 package com.ivan1pl.witchcraft.context;
 
+import com.google.common.primitives.Primitives;
 import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.context.annotations.Managed;
 import com.ivan1pl.witchcraft.context.exception.*;
@@ -94,7 +95,7 @@ public final class WitchCraftContext {
                 parameters[i] = get(parameterTypes[i].getType());
             } else {
                 parameters[i] = javaPlugin.getConfig().getObject(
-                        configurationValue.value(), parameterTypes[i].getType(), null);
+                        configurationValue.value(), Primitives.wrap(parameterTypes[i].getType()), null);
             }
         }
         return constructor.newInstance(parameters);
@@ -149,6 +150,15 @@ public final class WitchCraftContext {
                     "Candidate of type " + clazz.getCanonicalName() + " could not be found");
         }
         return (T) candidates.get(0);
+    }
+
+    /**
+     * Clear the context.
+     *
+     * Warning: the plugin might not work properly after invoking this method.
+     */
+    public void clear() {
+        context.clear();
     }
 
     /**

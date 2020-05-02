@@ -410,8 +410,9 @@ public abstract class BaseRawMessageBuilder<T> {
 
     /**
      * Create new component, append it to current component's extra and set it as current component.
+     * @param newCurrent new current to set
      */
-    protected final void newCurrent(BaseRawMessage newCurrent) {
+    private void newCurrent(BaseRawMessage newCurrent) {
         if (current.getExtra() == null) {
             current.setExtra(new LinkedList<>());
         }
@@ -423,7 +424,7 @@ public abstract class BaseRawMessageBuilder<T> {
      * Add message.
      * @param message message to add
      */
-    protected final void add(BaseRawMessage message) {
+    final void add(BaseRawMessage message) {
         if (current == null) {
             current = new TextRawMessage();
             components.add(current);

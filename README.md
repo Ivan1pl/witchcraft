@@ -388,6 +388,7 @@ For other parameters, this is a (still growing) list of all currently supported 
 * `double`
 * `Double`
 * `Biome`
+* `BlockData`
 * `EntityEffect`
 * `EntityType`
 * `EquipmentSlot`
@@ -406,6 +407,7 @@ But even here, if a type is not yet supported, the framework provides a way to u
 
 The framework will automatically complete subcommand names and parameters of the following types (more types will be added in the future):
 * `Biome`
+* `BlockData`
 * `EntityEffect`
 * `EntityType`
 * `EquipmentSlot`

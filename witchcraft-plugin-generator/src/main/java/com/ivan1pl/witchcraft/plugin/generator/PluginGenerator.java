@@ -14,6 +14,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 /**
  * Generate {@code plugin.yml} file from annotations.
  */
+@SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class PluginGenerator extends AbstractProcessor {
     /**
      * Process annotations.

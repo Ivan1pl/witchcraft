@@ -228,7 +228,7 @@ The framework will automatically complete subcommand names and parameters of the
 * `World`
 * `WorldType`
 
-However, it is very easy to provide possible tab completions to any other parameter: simply create a class implementing `TabCompleter` interface (it contains only one method `Set<String> getSuggestions(String partial)` returning all suggestions for given partial value) and annotate the parameter with `@TabComplete` annotation.
+However, it is very easy to provide possible tab completions to any other parameter: simply create a class implementing `TabCompleter` interface (it contains only one method `Set<String> getSuggestions(String partial)` returning all suggestions for given partial value), annotate that class with `@Managed` annotation and annotate the parameter with `@TabComplete` annotation. Your class should be located in the same package tree as your plugin class (or the one indicated by `@Plugin` annotation if you use it) and should contain a single public constructor with parameters supported by dependency injection feature.
 
 ### Help
 

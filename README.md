@@ -197,13 +197,38 @@ For other parameters, this is a (still growing) list of all currently supported 
 * `Float`
 * `double`
 * `Double`
+* `Biome`
+* `EntityEffect`
+* `EntityType`
+* `EquipmentSlot`
+* `GameMode`
+* `Instrument`
+* `Material`
 * `Player`
+* `PotionType`
+* `WeatherType`
+* `World`
+* `WorldType`
 
 But even here, if a type is not yet supported, the framework provides a way to use it. You can use the annotation `@Adapter` and create a class implementing the `TypeAdapter` interface and annotated with `@Managed` annotation. The interface contains only one method `Object convert(String arg)` which provides a way to convert a `String` value to your desired type. Your class should be located in the same package tree as your plugin class (or the one indicated by `@Plugin` annotation if you use it) and should contain a single public constructor with parameters supported by dependency injection feature.
 
 ### Tab completion
 
-The framework will automatically complete only subcommand names and player names (more types will be added in the future). However, it is very easy to provide possible tab completions to any other parameter: simply create a class implementing `TabCompleter` interface (it contains only one method `Set<String> getSuggestions(String partial)` returning all suggestions for given partial value) and annotate the parameter with `@TabComplete` annotation.
+The framework will automatically complete subcommand names and parameters of the following types (more types will be added in the future):
+* `Biome`
+* `EntityEffect`
+* `EntityType`
+* `EquipmentSlot`
+* `GameMode`
+* `Instrument`
+* `Material`
+* `Player`
+* `PotionType`
+* `WeatherType`
+* `World`
+* `WorldType`
+
+However, it is very easy to provide possible tab completions to any other parameter: simply create a class implementing `TabCompleter` interface (it contains only one method `Set<String> getSuggestions(String partial)` returning all suggestions for given partial value) and annotate the parameter with `@TabComplete` annotation.
 
 ### Help
 

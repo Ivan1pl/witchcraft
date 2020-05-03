@@ -83,9 +83,9 @@ class Help {
                     .color(ChatColor.AQUA).append("Displaying Help [")
                     .color(ChatColor.GREEN).append(Integer.toString(page))
                     .color(ChatColor.AQUA).append("/").append(Integer.toString(pages.size())).append("]").newLine()
-                    .append("To view other pages, type: /").append(commandName)
+                    .append("To view other pages, type: /").append(commandName).append(" help")
                     .append(subcommand == null ? " " : " " + subcommand + " ")
-                    .color(ChatColor.GREEN).append("#pageNumber").resetColor().newLine()
+                    .color(ChatColor.GREEN).append("<page number>").resetColor().newLine()
                     .append(pageBuilder.build()).build();
             pageBuilderRaw.reset().newLine().color(page == 1 ? ChatColor.DARK_GRAY : ChatColor.GOLD);
             RawMessageBuilder.HoverMessageBuilder<RawMessageBuilder> hoverBuilderPrev =

@@ -6,6 +6,7 @@ import com.ivan1pl.witchcraft.commands.annotations.Sender;
 import com.ivan1pl.witchcraft.commands.annotations.SubCommand;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.EquipmentSlot;
@@ -17,6 +18,12 @@ public class AdaptersTestCommand {
     @Description(shortDescription = "Test biome adapter", detailedDescription = "Test biome adapter")
     public void biome(@Sender CommandSender commandSender, Biome biome) {
         commandSender.sendMessage("Biome: " + biome.name());
+    }
+
+    @SubCommand("block-data")
+    @Description(shortDescription = "Test block data adapter", detailedDescription = "Test block data adapter")
+    public void blockData(@Sender CommandSender commandSender, BlockData blockData) {
+        commandSender.sendMessage("Block data: " + blockData.getAsString(true));
     }
 
     @SubCommand("entity-effect")

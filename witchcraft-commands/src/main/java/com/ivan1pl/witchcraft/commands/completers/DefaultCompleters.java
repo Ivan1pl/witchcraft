@@ -4,6 +4,7 @@ import com.ivan1pl.witchcraft.commands.base.TabCompleter;
 import com.ivan1pl.witchcraft.context.annotations.Managed;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -22,6 +23,7 @@ public class DefaultCompleters {
     /**
      * Create completers mapping.
      * @param biomeTabCompleter biome tab completer
+     * @param blockDataTabCompleter block data tab completer
      * @param entityEffectTabCompleter entity effect tab completer
      * @param entityTypeTabCompleter entity type tab completer
      * @param equipmentSlotTabCompleter equipment slot tab completer
@@ -35,6 +37,7 @@ public class DefaultCompleters {
      * @param worldTypeTabCompleter world type tab completer
      */
     public DefaultCompleters(BiomeTabCompleter biomeTabCompleter,
+                             BlockDataTabCompleter blockDataTabCompleter,
                              EntityEffectTabCompleter entityEffectTabCompleter,
                              EntityTypeTabCompleter entityTypeTabCompleter,
                              EquipmentSlotTabCompleter equipmentSlotTabCompleter,
@@ -47,6 +50,7 @@ public class DefaultCompleters {
                              WorldTabCompleter worldTabCompleter,
                              WorldTypeTabCompleter worldTypeTabCompleter) {
         completers.put(Biome.class, biomeTabCompleter);
+        completers.put(BlockData.class, blockDataTabCompleter);
         completers.put(EntityEffect.class, entityEffectTabCompleter);
         completers.put(EntityType.class, entityTypeTabCompleter);
         completers.put(EquipmentSlot.class, equipmentSlotTabCompleter);

@@ -4,6 +4,7 @@ import com.ivan1pl.witchcraft.commands.base.TypeAdapter;
 import com.ivan1pl.witchcraft.context.annotations.Managed;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -27,6 +28,7 @@ public class DefaultAdapters {
      * @param floatAdapter float adapter
      * @param doubleAdapter double adapter
      * @param biomeAdapter  biome adapter
+     * @param blockDataAdapter block data adapter
      * @param entityEffectAdapter entity effect adapter
      * @param entityTypeAdapter entity type adapter
      * @param equipmentSlotAdapter equipment slot adapter
@@ -45,6 +47,7 @@ public class DefaultAdapters {
                            FloatAdapter floatAdapter,
                            DoubleAdapter doubleAdapter,
                            BiomeAdapter biomeAdapter,
+                           BlockDataAdapter blockDataAdapter,
                            EntityEffectAdapter entityEffectAdapter,
                            EntityTypeAdapter entityTypeAdapter,
                            EquipmentSlotAdapter equipmentSlotAdapter,
@@ -68,6 +71,7 @@ public class DefaultAdapters {
         adapters.put(Double.class, doubleAdapter);
         //Bukkit classes
         adapters.put(Biome.class, biomeAdapter);
+        adapters.put(BlockData.class, blockDataAdapter);
         adapters.put(EntityEffect.class, entityEffectAdapter);
         adapters.put(EntityType.class, entityTypeAdapter);
         adapters.put(EquipmentSlot.class, equipmentSlotAdapter);

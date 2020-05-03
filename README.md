@@ -26,6 +26,196 @@ repositories {
 }
 ```
 
+# Dependency injection
+
+WitchCraft Framework will create instances of your classes for you, and it will also link them together. Your classes can depend on other classes or configuration values. The framework will create a single instance of each managed class. Dependencies are injected by constructor parameters.
+
+## Setup
+
+You will need to add `witchcraft-plugin` library to your project.
+
+### Maven
+
+Add dependency on `witchcraft-plugin`:
+```xml
+<dependencies>
+    <dependency>
+        <groupId>com.ivan1pl.witchcraft</groupId>
+        <artifactId>witchcraft-plugin</artifactId>
+        <version>0.4.0</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>
+```
+
+### Gradle
+
+Add dependency on `witchcraft-plugin`:
+```gradle
+dependencies {
+    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.4.0"
+}
+```
+
+### Setup
+
+Then simply extend `WitchCraftPlugin` instead of `JavaPlugin` in your main plugin class. That's it.
+
+All classes annotated with `@Managed` or `@Command` and placed in the same package tree as your main plugin class will be managed by WitchCraft's dependency injection feature. If you want to put your managed classes in a different package tree (i.e. neither in the same package nor in any of its subpackages) from the main plugin class, use `@Plugin` annotation on your main plugin class to tell the framework where to search for them.
+
+## Limitations
+
+There are several limitations to how dependency injection works. Each managed class should have exactly one constructor. It should be public and all its parameters should be instances of other managed classes or configuration values (default constructors count and are valid). Consider the following example:
+```java
+@Managed
+public class A {
+    public A(B dep1, C dep2, @ConfigurationValue("some.configuration.key") int someConfigurationKey) {
+        //constructor body...
+    }
+}
+
+@Managed
+public class B {
+}
+
+public class C {
+}
+```
+
+In that example dependency injection will fail. Class `A` depends on classes `B` and `C` and on configuration value `some.configuration.key`. However, class `C` is not managed by dependency injection feature (there's no `@Managed` annotation), which means that the framework will not be able to create an instance of that class and pass it as parameter to the constructor of class `A`.
+
+Another limitation is that there can be no dependency cycles. Consider the following example:
+```java
+@Managed
+public class A {
+    public A(B dep) {}
+}
+
+@Managed
+public class B {
+    public B(C dep) {}
+}
+
+@Managed
+public class C {
+    public C(A dep) {}
+}
+```
+
+In this example, in order to create an instance of class `A`, the framework needs to create an instance of class `B` first. To create an instance of class `B` it needs to create an instance of class `C` first. That is impossible because it would then need to create an instance of class `A` which is already under construction.
+
+## Example
+
+Take a look at a working example of dependency injection configuration containing both `@Managed` and `@Command` annotated classes (commands will be explained in the next section).
+
+File `config.yml`:
+```yaml
+witchcraft:
+  example:
+    counter:
+      initVal: 42
+```
+
+File `Counter.java`:
+```java
+@Managed
+public class Counter {
+    private final JavaPlugin javaPlugin;
+    private int value;
+
+    public Counter(JavaPlugin javaPlugin, @ConfigurationValue("witchcraft.example.counter.initVal") int initVal) {
+        this.javaPlugin = javaPlugin;
+        this.value = initVal;
+    }
+
+    public void increase() {
+        value++;
+        javaPlugin.getLogger().info("Increase counter");
+    }
+
+    public void decrease() {
+        value--;
+        javaPlugin.getLogger().info("Decrease counter");
+    }
+
+    public int getValue() {
+        return value;
+    }
+}
+```
+
+File `WcAdd.java`:
+```java
+@Command(name = "cadd", description = "Increase counter")
+public class WcAdd {
+    private final Counter counter;
+
+    public WcAdd(Counter counter) {
+        this.counter = counter;
+    }
+
+    @SubCommand
+    @Description(shortDescription = "Increase counter",
+            detailedDescription = "Add 1 to current value of the global counter")
+    public void increaseCounter(@Sender CommandSender commandSender) {
+        counter.increase();
+        commandSender.sendMessage("Increased counter, current value: " + counter.getValue());
+    }
+}
+```
+
+File `WcSubtract.java`:
+```java
+@Command(name = "csubtract", description = "Decrease counter")
+public class WcSubtract {
+    private final Counter counter;
+
+    public WcSubtract(Counter counter) {
+        this.counter = counter;
+    }
+
+    @SubCommand
+    @Description(shortDescription = "Decrease counter",
+            detailedDescription = "Subtract 1 from current value of the global counter")
+    public void decreaseCounter(@Sender CommandSender commandSender) {
+        counter.decrease();
+        commandSender.sendMessage("Decreased counter, current value: " + counter.getValue());
+    }
+}
+```
+
+File `WitchCraftExamplePlugin.java`:
+```java
+public class WitchCraftExamplePlugin extends WitchCraftPlugin {
+    @Override
+    protected void preInit() {
+        saveDefaultConfig();
+    }
+}
+```
+
+In this example a single instance of `Counter` class is created and shared between instances of `WcAdd` and `WcSubtract` classes. This can be seen if you execute the following command chain:
+* `/cadd`
+* `/cadd`
+* `/cadd`
+* `/csubtract`
+* `/csubtract`
+* `/cadd`
+
+You will get the following messages after executing commands in that order:
+* `Increased counter, current value: 43`
+* `Increased counter, current value: 44`
+* `Increased counter, current value: 45`
+* `Decreased counter, current value: 44`
+* `Decreased counter, current value: 43`
+* `Increased counter, current value: 44`
+
+## Predefined managed classes
+
+The framework comes with its own set of classes annotated with `@Managed` annotation. All classes within packages `com.ivan1pl.witchcraft.commands.adapters` and `com.ivan1pl.witchcraft.commands.completers` will be automatically instantiated and you can use them as dependencies of your managed classes.
+
+There are two classes that are not annotated with `@Managed` or `@Command`, but you can still use them as dependencies in your managed classes. One of them is your main plugin class. The other is `WitchCraftContext`, which is a class that is used to manage the entire dependency injection feature and contains instances of all managed classes (which you can acquire at runtime by invoking method `get`, e.g. `witchCraftContext.get(JavaPlugin.class)` will give you your plugin instance).
+
 # Commands
 
 WitchCraft Framework provides a very simple way of defining commands using annotated classes and functions. The framework will take care of everything: annotated classes will be automatically registered and added to command

@@ -1,5 +1,5 @@
 group 'com.ivan1pl.witchcraft'
-version '0.4.0'
+version '0.5.0'
 
 ext {
     spigotVersion = '1.15.2-R0.1-SNAPSHOT'
@@ -12,7 +12,7 @@ allprojects {
     apply plugin: 'maven-publish'
 
     group 'com.ivan1pl.witchcraft'
-    version '0.4.0'
+    version '0.5.0'
 
     sourceCompatibility = 1.8
 

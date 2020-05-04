@@ -34,16 +34,6 @@ allprojects {
     }
 
     publishing {
-        repositories {
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/Ivan1pl/witchcraft")
-                credentials {
-                    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-                }
-            }
-        }
         publications {
             mavenJava(MavenPublication) {
                 from components.java
@@ -73,5 +63,3 @@ allprojects {
         }
     }
 }
-
-publish.enabled = false

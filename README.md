@@ -1,4 +1,4 @@
-# WitchCraft
+# WitchCraft ![Build status](https://github.com/Ivan1pl/witchcraft/workflows/Build/badge.svg)
 WitchCraft Framework is a java framework for creating Bukkit plugins. It provides annotation-based command configuration and `plugin.yml` file generation.
 
 # Setup

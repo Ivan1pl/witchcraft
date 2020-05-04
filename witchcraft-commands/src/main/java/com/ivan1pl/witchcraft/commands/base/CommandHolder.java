@@ -1,14 +1,16 @@
 package com.ivan1pl.witchcraft.commands.base;
 
+import com.google.common.primitives.Primitives;
+import com.ivan1pl.witchcraft.commands.adapters.DefaultAdapters;
 import com.ivan1pl.witchcraft.commands.annotations.*;
+import com.ivan1pl.witchcraft.commands.completers.DefaultCompleters;
 import com.ivan1pl.witchcraft.commands.exceptions.CommandAlreadyExistsException;
+import com.ivan1pl.witchcraft.context.WitchCraftContext;
+import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.core.builders.MessageBuilder;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.InvocationTargetException;
@@ -18,7 +20,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Class holding the instance of a class annotated with {@link Command}
@@ -29,22 +30,30 @@ class CommandHolder {
     private final String commandName;
     private final String commandDescription;
     private final Object commandObject;
+    private final DefaultAdapters defaultAdapters;
+    private final DefaultCompleters defaultCompleters;
+    private final WitchCraftContext witchCraftContext;
     private final Map<String, Method> subcommands = new HashMap<>();
 
     /**
      * Create new instance.
      * @param javaPlugin plugin instance
+     * @param witchCraftContext dependency injection context
      * @param commandName command name
      * @param commandDescription command description
      * @param commandClass command class
+     * @throws CommandAlreadyExistsException when there are several subcommands with the same name
      */
-    CommandHolder(JavaPlugin javaPlugin, String commandName, String commandDescription, Class<?> commandClass)
-            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException,
-            CommandAlreadyExistsException {
+    CommandHolder(JavaPlugin javaPlugin, WitchCraftContext witchCraftContext, String commandName,
+                  String commandDescription, Class<?> commandClass)
+            throws CommandAlreadyExistsException {
         this.javaPlugin = javaPlugin;
         this.commandName = commandName;
         this.commandDescription = commandDescription;
-        this.commandObject = commandClass.getConstructor().newInstance();
+        this.commandObject = witchCraftContext.get(commandClass);
+        this.defaultAdapters = witchCraftContext.get(DefaultAdapters.class);
+        this.defaultCompleters = witchCraftContext.get(DefaultCompleters.class);
+        this.witchCraftContext = witchCraftContext;
         initSubcommands();
     }
 
@@ -163,7 +172,7 @@ class CommandHolder {
                 ConfigurationValue configurationValue = parameter.getAnnotation(ConfigurationValue.class);
                 if (configurationValue != null) {
                     params[i] = javaPlugin.getConfig().getObject(
-                            configurationValue.value(), parameter.getType(), null);
+                            configurationValue.value(), Primitives.wrap(parameter.getType()), null);
                 } else {
                     String value;
                     if (argsIndex < args.length) {
@@ -212,16 +221,7 @@ class CommandHolder {
         if (expectedType.isAssignableFrom(stringValue.getClass())) {
             return stringValue;
         } else if (adapter != null) {
-            TypeAdapter typeAdapter;
-            try {
-                typeAdapter = adapter.value().getConstructor().newInstance();
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                    NoSuchMethodException e) {
-                javaPlugin.getLogger().severe(
-                        "Unable to instantiate type adapter: no default constructor found or it is inaccessible\n"
-                                + ExceptionUtils.getFullStackTrace(e));
-                return null;
-            }
+            TypeAdapter typeAdapter = witchCraftContext.get(adapter.value());
             Object value = typeAdapter.convert(stringValue);
             if (value != null && expectedType.isAssignableFrom(value.getClass())) {
                 return value;
@@ -229,53 +229,9 @@ class CommandHolder {
                 return null;
             }
         } else {
-            if (expectedType == boolean.class || expectedType == Boolean.class) {
-                return "1".equals(stringValue) || "t".equalsIgnoreCase(stringValue) ||
-                        "true".equalsIgnoreCase(stringValue);
-            }
-            if (expectedType == int.class || expectedType == Integer.class) {
-                try {
-                    return Integer.parseInt(stringValue);
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            }
-            if (expectedType == long.class || expectedType == Long.class) {
-                try {
-                    return Long.parseLong(stringValue);
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            }
-            if (expectedType == float.class || expectedType == Float.class) {
-                try {
-                    return Float.parseFloat(stringValue);
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            }
-            if (expectedType == double.class || expectedType == Double.class) {
-                try {
-                    return Double.parseDouble(stringValue);
-                } catch (NumberFormatException e) {
-                    return null;
-                }
-            }
-            if (expectedType.isAssignableFrom(Player.class)) {
-                Player player = javaPlugin.getServer().getPlayer(stringValue);
-                if (player != null) {
-                    return player;
-                } else {
-                    OfflinePlayer[] players = javaPlugin.getServer().getOfflinePlayers();
-                    for (OfflinePlayer offlinePlayer : players) {
-                        if (stringValue.equalsIgnoreCase(offlinePlayer.getName())) {
-                            return offlinePlayer.getPlayer();
-                        }
-                    }
-                }
-            }
+            TypeAdapter typeAdapter = defaultAdapters.get(expectedType);
+            return typeAdapter == null ? null : typeAdapter.convert(stringValue);
         }
-        return null;
     }
 
     /**
@@ -364,21 +320,9 @@ class CommandHolder {
      * @return set of tab complete suggestions
      */
     private Set<String> getTabCompletions(String partial, Class<?> expectedType, TabComplete tabComplete) {
-        if (expectedType.isAssignableFrom(Player.class)) {
-            return javaPlugin.getServer().matchPlayer(partial).stream()
-                    .map(HumanEntity::getName)
-                    .collect(Collectors.toSet());
-        } else if (tabComplete != null) {
-            try {
-                TabCompleter tabCompleter = tabComplete.value().getConstructor().newInstance();
-                return tabCompleter.getSuggestions(partial);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                javaPlugin.getLogger().severe(
-                        "Failed to instantiate tab completer: no default constructor found or it is inaccessible\n"
-                                + ExceptionUtils.getFullStackTrace(e));
-            }
-        }
-        return new HashSet<>();
+        TabCompleter tabCompleter = tabComplete == null ?
+                defaultCompleters.get(expectedType) : witchCraftContext.get(tabComplete.value());
+        return tabCompleter == null ? new HashSet<>() : tabCompleter.getSuggestions(partial);
     }
 
     /**

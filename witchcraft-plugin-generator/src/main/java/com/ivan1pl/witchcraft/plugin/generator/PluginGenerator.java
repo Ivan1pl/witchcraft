@@ -1,7 +1,7 @@
 package com.ivan1pl.witchcraft.plugin.generator;
 
 import com.ivan1pl.witchcraft.commands.annotations.Command;
-import com.ivan1pl.witchcraft.commands.annotations.ConfigurationValue;
+import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.commands.annotations.Optional;
 import com.ivan1pl.witchcraft.commands.annotations.Sender;
 import com.ivan1pl.witchcraft.commands.annotations.SubCommand;
@@ -14,6 +14,8 @@ import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 /**
  * Generate {@code plugin.yml} file from annotations.
  */
+@SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class PluginGenerator extends AbstractProcessor {
     /**
      * Process annotations.

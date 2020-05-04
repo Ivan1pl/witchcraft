@@ -1,0 +1,4 @@
+witchcraft:
+  example:
+    counter:
+      initVal: 42

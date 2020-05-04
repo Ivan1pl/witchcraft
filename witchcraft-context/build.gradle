@@ -1,5 +1,6 @@
 dependencies {
-    compile project(':witchcraft-context')
+    compile project(':witchcraft-core')
     compileOnly group: 'org.bukkit', name: 'bukkit', version: spigotVersion
+    compile group: 'org.reflections', name: 'reflections', version: reflectionsVersion
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

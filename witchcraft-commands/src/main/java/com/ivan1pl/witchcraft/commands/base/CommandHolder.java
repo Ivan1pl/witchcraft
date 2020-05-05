@@ -3,6 +3,7 @@ package com.ivan1pl.witchcraft.commands.base;
 import com.google.common.primitives.Primitives;
 import com.ivan1pl.witchcraft.commands.adapters.DefaultAdapters;
 import com.ivan1pl.witchcraft.commands.annotations.*;
+import com.ivan1pl.witchcraft.commands.annotations.Optional;
 import com.ivan1pl.witchcraft.commands.completers.DefaultCompleters;
 import com.ivan1pl.witchcraft.commands.exceptions.CommandAlreadyExistsException;
 import com.ivan1pl.witchcraft.context.WitchCraftContext;
@@ -13,13 +14,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Class holding the instance of a class annotated with {@link Command}
@@ -173,6 +172,24 @@ class CommandHolder {
                 if (configurationValue != null) {
                     params[i] = javaPlugin.getConfig().getObject(
                             configurationValue.value(), Primitives.wrap(parameter.getType()), null);
+                } else if (i == methodParameters.length - 1 && parameter.getType().isArray()) {
+                    List<String> values = new LinkedList<>();
+                    while (argsIndex < args.length) {
+                        values.add(args[argsIndex++]);
+                    }
+                    Class<?> elementType = parameter.getType().getComponentType();
+                    Object array = Array.newInstance(elementType, values.size());
+                    int index = 0;
+                    for (String value : values) {
+                        Object valueToSet = assignValue(
+                                value, elementType, parameter.getAnnotation(Adapter.class));
+                        if (valueToSet == null) {
+                            return ExecutionStatus.FAILURE;
+                        } else {
+                            Array.set(array, index++, valueToSet);
+                        }
+                    }
+                    params[i] = array;
                 } else {
                     String value;
                     if (argsIndex < args.length) {
@@ -299,6 +316,10 @@ class CommandHolder {
         for (Parameter parameter : methodParameters) {
             if (parameter.getAnnotation(Sender.class) == null &&
                     parameter.getAnnotation(ConfigurationValue.class) == null) {
+                if (parameter == methodParameters[methodParameters.length - 1] && parameter.getType().isArray()) {
+                    return getTabCompletions(args[args.length - 1], parameter.getType().getComponentType(),
+                            parameter.getAnnotation(TabComplete.class));
+                }
                 if (argsIndex >= args.length) {
                     return new HashSet<>();
                 }

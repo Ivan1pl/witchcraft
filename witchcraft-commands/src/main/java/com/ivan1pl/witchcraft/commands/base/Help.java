@@ -245,19 +245,22 @@ class Help {
             messageBuilder.append(" ").append(subcommandName);
             commandNameBuilder.append(" ").append(subcommandName);
         }
+        int i = 0;
         for (Parameter parameter : commandMethod.getParameters()) {
             if (parameter.getAnnotation(Sender.class) == null &&
                     parameter.getAnnotation(ConfigurationValue.class) == null) {
                 String name = parameter.getName();
                 Optional optional = parameter.getAnnotation(Optional.class);
+                boolean vararg = i == commandMethod.getParameterCount() - 1 && parameter.getType().isArray();
                 if (optional == null) {
-                    messageBuilder.append(" <").append(name).append(">");
-                    commandNameBuilder.append(" <").append(name).append(">");
+                    messageBuilder.append(" <").append(name).append(vararg ? "..." : "").append(">");
+                    commandNameBuilder.append(" <").append(name).append(vararg ? "..." : "").append(">");
                 } else {
                     messageBuilder.append(" [").append(name).append("=").append(optional.value()).append("]");
                     commandNameBuilder.append(" [").append(name).append("=").append(optional.value()).append("]");
                 }
             }
+            i++;
         }
         commandNameBuilder.end().end();
 

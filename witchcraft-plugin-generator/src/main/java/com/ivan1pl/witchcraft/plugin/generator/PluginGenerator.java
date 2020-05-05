@@ -20,6 +20,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
@@ -201,9 +202,12 @@ public class PluginGenerator extends AbstractProcessor {
                     .filter(e -> e.getAnnotation(Sender.class) == null)
                     .filter(e -> e.getAnnotation(ConfigurationValue.class) == null)
                     .collect(Collectors.toList());
+            int i = 0;
             for (Element parameter : parameters) {
+                boolean vararg = i == parameters.size() - 1 && parameter.asType().getKind() == TypeKind.ARRAY;
                 boolean optional = parameter.getAnnotation(Optional.class) != null;
-                parts.add(String.format(optional ? "[%s]" : "<%s>", parameter.getSimpleName()));
+                parts.add(String.format(optional ? "[%s]" : "<%s>", parameter.getSimpleName() + (vararg ? "..." : "")));
+                i++;
             }
             usageDescriptions.add(String.join(" ", parts));
         }

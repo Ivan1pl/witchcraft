@@ -3,9 +3,12 @@ package com.ivan1pl.witchcraft.examples.commands;
 import com.ivan1pl.witchcraft.commands.annotations.*;
 import com.ivan1pl.witchcraft.examples.WitchCraftExamplePlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.Arrays;
 
 @Command(name = "witchcraft-test", aliases = {"wtest", "wctest"},
         permission = "witchcraft-example-plugin.witchcraft-test",
@@ -134,5 +137,17 @@ public class TestCommand {
     public void sub12() {
         Bukkit.broadcastMessage("[sub12] 42");
         witchCraftExamplePlugin.getLogger().info("Executed witchcraft-test");
+    }
+
+    @SubCommand("vararg1")
+    @Description(shortDescription = "Varargs test", detailedDescription = "Varargs test")
+    public void vararg1(@Sender CommandSender commandSender, int num, double[] doubles) {
+        commandSender.sendMessage("num=" + num + ";doubles=" + Arrays.toString(doubles));
+    }
+
+    @SubCommand("vararg2")
+    @Description(shortDescription = "Vararg test 2", detailedDescription = "Vararg test 2")
+    public void vararg2(@Sender CommandSender commandSender, String someText, Material[] materials) {
+        commandSender.sendMessage("someText=" + someText + ";materials=" + Arrays.toString(materials));
     }
 }

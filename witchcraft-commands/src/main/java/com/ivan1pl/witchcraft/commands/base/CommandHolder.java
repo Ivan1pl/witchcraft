@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Class holding the instance of a class annotated with {@link Command}
@@ -158,6 +159,55 @@ class CommandHolder {
                 return ExecutionStatus.CANNOT_EXECUTE;
             }
         }
+        OptionValues optionValues = new OptionValues();
+        boolean optionsSupported = false;
+        for (Parameter parameter : methodParameters) {
+            Option option = parameter.getAnnotation(Option.class);
+            if (option != null) {
+                optionValues.addOption(option, parameter.getType());
+                optionsSupported = true;
+            }
+        }
+        if (optionsSupported) {
+            while (argsIndex < args.length && args[argsIndex].startsWith("-")) {
+                List<OptionValue> optionValueList = new LinkedList<>();
+                if (args[argsIndex].startsWith("--")) {
+                    String longName = args[argsIndex].substring(2);
+                    OptionValue optionValue = optionValues.getOption(longName);
+                    if (optionValue != null) {
+                        optionValueList.add(optionValue);
+                    } else {
+                        return ExecutionStatus.FAILURE;
+                    }
+                } else {
+                    String shortNames = args[argsIndex].substring(1);
+                    char[] chars = shortNames.toCharArray();
+                    for (char c : chars) {
+                        OptionValue optionValue = optionValues.getOption(c);
+                        if (optionValue != null) {
+                            optionValueList.add(optionValue);
+                        } else {
+                            return ExecutionStatus.FAILURE;
+                        }
+                    }
+                }
+                boolean paramsEnabled = optionValueList.size() == 1;
+                for (OptionValue optionValue : optionValueList) {
+                    if (optionValue.isHasParameter() && !paramsEnabled) {
+                        return ExecutionStatus.FAILURE;
+                    }
+                    if (optionValue.isHasParameter()) {
+                        if (++argsIndex >= args.length) {
+                            return ExecutionStatus.FAILURE;
+                        }
+                        optionValue.addValue(args[argsIndex]);
+                    } else {
+                        optionValue.addValue("true");
+                    }
+                }
+                argsIndex++;
+            }
+        }
         for (int i = 0; i < methodParameters.length; ++i) {
             Parameter parameter = methodParameters[i];
 
@@ -167,6 +217,9 @@ class CommandHolder {
                 } else {
                     return ExecutionStatus.CANNOT_EXECUTE;
                 }
+            } else if (parameter.getAnnotation(Option.class) != null) {
+                params[i] = getOptionValue(parameter.getAnnotation(Option.class), parameter.getType(), optionValues,
+                        parameter.getAnnotation(Adapter.class));
             } else {
                 ConfigurationValue configurationValue = parameter.getAnnotation(ConfigurationValue.class);
                 if (configurationValue != null) {
@@ -224,6 +277,35 @@ class CommandHolder {
             javaPlugin.getLogger().severe("An exception occured while executing subcommand method\n" +
                     ExceptionUtils.getFullStackTrace(e));
             return ExecutionStatus.ERROR;
+        }
+    }
+
+    /**
+     * Get option's value.
+     * @param option option definition
+     * @param expectedType expected type
+     * @param optionValues option values
+     * @param adapter type adapter
+     * @return option value
+     */
+    private Object getOptionValue(Option option, Class<?> expectedType, OptionValues optionValues, Adapter adapter) {
+        if (expectedType.isArray()) {
+            List<Object> elements = new LinkedList<>();
+            Object element;
+            while ((element = getOptionValue(option, expectedType.getComponentType(), optionValues, adapter)) != null) {
+                elements.add(element);
+            }
+            Object array = Array.newInstance(expectedType.getComponentType(), elements.size());
+            int i = 0;
+            for (Object object : elements) {
+                Array.set(array, i++, object);
+            }
+            return array;
+        } else {
+            OptionValue optionValue = optionValues.getOption(option);
+            String stringValue = optionValue == null ? null : optionValue.getValue();
+            Object retval = stringValue == null ? null : assignValue(stringValue, expectedType, adapter);
+            return optionValue != null && !optionValue.isHasParameter() && retval == null ? false : retval;
         }
     }
 
@@ -313,9 +395,60 @@ class CommandHolder {
             }
         }
         Parameter[] methodParameters = m.getParameters();
+        OptionValues optionValues = new OptionValues();
+        boolean processingOptions = false;
+        for (Parameter parameter : methodParameters) {
+            Option option = parameter.getAnnotation(Option.class);
+            if (option != null) {
+                optionValues.addOption(option, parameter.getType());
+                processingOptions = true;
+            }
+        }
+        if (processingOptions) {
+            OptionValue optionValue = null;
+            while (argsIndex < args.length && args[argsIndex].startsWith("-")) {
+                if (argsIndex != args.length - 1) {
+                    if (args[argsIndex].startsWith("--")) {
+                        optionValue = optionValues.getOption(args[argsIndex].substring(2));
+                    } else if (args[argsIndex].length() == 2) {
+                        optionValue = optionValues.getOption(args[argsIndex].toCharArray()[1]);
+                    } else {
+                        optionValue = null;
+                    }
+                    if (optionValue != null && optionValue.isHasParameter()) {
+                        argsIndex++;
+                    } else {
+                        optionValue = null;
+                    }
+                } else {
+                    optionValue = null;
+                }
+                argsIndex++;
+            }
+            if (argsIndex >= args.length) {
+                if (optionValue != null) {
+                    for (Parameter parameter : methodParameters) {
+                        Option option = parameter.getAnnotation(Option.class);
+                        if (option != null && option.shortName() == optionValue.getShortName() &&
+                                option.longName().equals(optionValue.getLongName())) {
+                            return getTabCompletions(args[args.length - 1],
+                                    parameter.getType().isArray() ?
+                                            parameter.getType().getComponentType() : parameter.getType(),
+                                    parameter.getAnnotation(TabComplete.class));
+                        }
+                    }
+                } else {
+                    final String prefix = args[argsIndex - 1];
+                    return optionValues.getPossibleKeys().stream()
+                            .filter(s -> s.startsWith(prefix))
+                            .collect(Collectors.toSet());
+                }
+            }
+        }
         for (Parameter parameter : methodParameters) {
             if (parameter.getAnnotation(Sender.class) == null &&
-                    parameter.getAnnotation(ConfigurationValue.class) == null) {
+                    parameter.getAnnotation(ConfigurationValue.class) == null &&
+                    parameter.getAnnotation(Option.class) == null) {
                 if (parameter == methodParameters[methodParameters.length - 1] && parameter.getType().isArray()) {
                     return getTabCompletions(args[args.length - 1], parameter.getType().getComponentType(),
                             parameter.getAnnotation(TabComplete.class));

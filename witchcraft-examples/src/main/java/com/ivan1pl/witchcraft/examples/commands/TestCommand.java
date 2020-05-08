@@ -4,6 +4,7 @@ import com.ivan1pl.witchcraft.commands.annotations.*;
 import com.ivan1pl.witchcraft.examples.WitchCraftExamplePlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
@@ -150,4 +151,26 @@ public class TestCommand {
     public void vararg2(@Sender CommandSender commandSender, String someText, Material[] materials) {
         commandSender.sendMessage("someText=" + someText + ";materials=" + Arrays.toString(materials));
     }
+
+    @SubCommand("opt")
+    @Description(shortDescription = "Options test", detailedDescription = "Options test")
+    public void opt(@Sender CommandSender commandSender, Material material1, Material material2,
+                    @Option(shortName = 'a', longName = "all", description = "All option") boolean optA,
+                    @Option(longName = "list", description = "List option") boolean optL,
+                    @Option(shortName = 'x', longName = "extra", max = 3, description = "Additional materials") Material[] parX,
+                    @Option(shortName = 'w', description = "World") World parW) {
+        commandSender.sendMessage("material1=" + material1 + ";material2=" + material2 + ";all=" + optA + ";list=" +
+                optL + ";extra=" + Arrays.toString(parX) + ";world=" + parW.getName());
+    }
+
+    @SubCommand("manyOpts")
+    @Description(shortDescription = "Many options", detailedDescription = "Many options")
+    public void manyOpts(@Option(shortName = 'a', longName = "a-option", description = "A option") String a,
+                         @Option(shortName = 'b', longName = "b-option", description = "B option") boolean b,
+                         @Option(shortName = 'c', description = "C option") String c,
+                         @Option(longName = "d-option", description = "D option") String d,
+                         @Option(shortName = 'e', description = "E option") boolean e,
+                         @Option(longName = "f-option", description = "F option") boolean f,
+                         @Option(shortName = 'g', description = "G option") String g,
+                         @Option(shortName = 'h', longName = "h-option", description = "H option") String h) {}
 }

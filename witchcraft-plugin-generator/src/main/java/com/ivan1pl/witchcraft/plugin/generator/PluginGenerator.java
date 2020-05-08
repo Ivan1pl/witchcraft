@@ -1,10 +1,8 @@
 package com.ivan1pl.witchcraft.plugin.generator;
 
-import com.ivan1pl.witchcraft.commands.annotations.Command;
-import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
+import com.ivan1pl.witchcraft.commands.annotations.*;
 import com.ivan1pl.witchcraft.commands.annotations.Optional;
-import com.ivan1pl.witchcraft.commands.annotations.Sender;
-import com.ivan1pl.witchcraft.commands.annotations.SubCommand;
+import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.core.annotations.ChildPermission;
 import com.ivan1pl.witchcraft.core.annotations.Permission;
 import com.ivan1pl.witchcraft.core.annotations.PermissionDefault;
@@ -198,9 +196,14 @@ public class PluginGenerator extends AbstractProcessor {
             if (!subCommand.value().isEmpty()) {
                 parts.add(subCommand.value());
             }
+            if (((ExecutableElement) element).getParameters().stream()
+                    .anyMatch(e -> e.getAnnotation(Option.class) != null)) {
+                parts.add("[options]");
+            }
             List<Element> parameters = ((ExecutableElement) element).getParameters().stream()
                     .filter(e -> e.getAnnotation(Sender.class) == null)
                     .filter(e -> e.getAnnotation(ConfigurationValue.class) == null)
+                    .filter(e -> e.getAnnotation(Option.class) == null)
                     .collect(Collectors.toList());
             int i = 0;
             for (Element parameter : parameters) {
@@ -234,6 +237,7 @@ public class PluginGenerator extends AbstractProcessor {
         annotations.add(Sender.class.getCanonicalName());
         annotations.add(ConfigurationValue.class.getCanonicalName());
         annotations.add(Optional.class.getCanonicalName());
+        annotations.add(Option.class.getCanonicalName());
         return annotations;
     }
 }

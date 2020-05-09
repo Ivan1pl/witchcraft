@@ -1,5 +1,6 @@
 package com.ivan1pl.witchcraft.commands.base;
 
+import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.ivan1pl.witchcraft.commands.annotations.Optional;
 import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
@@ -55,12 +56,12 @@ class Help {
         if (subcommand == null) {
             generalHelp(commandName, commandDescription, availableSubcommands, pages, pagesRaw);
         } else {
-            MessageBuilder messageBuilder = new MessageBuilder();
-            RawMessageBuilder rawMessageBuilder = new RawMessageBuilder();
-            pages.add(messageBuilder);
-            pagesRaw.add(rawMessageBuilder);
             Method subcommandMethod = availableSubcommands.get(subcommand);
             if (subcommandMethod == null) {
+                MessageBuilder messageBuilder = new MessageBuilder();
+                RawMessageBuilder rawMessageBuilder = new RawMessageBuilder();
+                pages.add(messageBuilder);
+                pagesRaw.add(rawMessageBuilder);
                 messageBuilder
                         .color(ChatColor.RED)
                         .append("No help available for '").append(subcommand).append("'")
@@ -70,7 +71,7 @@ class Help {
                         .append("No help available for '").append(subcommand).append("'")
                         .resetColor();
             } else {
-                detailedHelp(commandName, subcommand, subcommandMethod, messageBuilder, rawMessageBuilder);
+                detailedHelp(commandName, subcommand, subcommandMethod, pages, pagesRaw, true);
             }
         }
         String message;
@@ -166,8 +167,8 @@ class Help {
             }
             int i = 0;
             if (subcommandsSorted.get(0).getKey().isEmpty()) {
-                detailedHelp(commandName, null, subcommandsSorted.get(0).getValue(), messageBuilder,
-                        rawMessageBuilder);
+                detailedHelp(commandName, null, subcommandsSorted.get(0).getValue(), messageBuilders,
+                        rawMessageBuilders, false);
                 messageBuilder = new MessageBuilder();
                 rawMessageBuilder = new RawMessageBuilder();
                 messageBuilders.add(messageBuilder);
@@ -229,11 +230,24 @@ class Help {
      * @param commandName command name
      * @param subcommandName subcommand name
      * @param commandMethod subcommand method
-     * @param messageBuilder message builder
-     * @param rawMessageBuilder raw message builder
+     * @param messageBuilders message builders
+     * @param rawMessageBuilders raw message builders
+     * @param startNewPage whether to start new page or continue the previous one
      */
     private static void detailedHelp(String commandName, String subcommandName, Method commandMethod,
-                                     MessageBuilder messageBuilder, RawMessageBuilder rawMessageBuilder) {
+                                     List<MessageBuilder> messageBuilders, List<RawMessageBuilder> rawMessageBuilders,
+                                     boolean startNewPage) {
+        MessageBuilder messageBuilder;
+        RawMessageBuilder rawMessageBuilder;
+        if (startNewPage) {
+            messageBuilder = new MessageBuilder();
+            messageBuilders.add(messageBuilder);
+            rawMessageBuilder = new RawMessageBuilder();
+            rawMessageBuilders.add(rawMessageBuilder);
+        } else {
+            messageBuilder = messageBuilders.get(0);
+            rawMessageBuilder = rawMessageBuilders.get(0);
+        }
         messageBuilder.color(ChatColor.AQUA).append("> ").color(ChatColor.GREEN).append(commandName);
         ComplexRawMessageBuilder.HoverMessageBuilder<ComplexRawMessageBuilder.ActionMessageBuilder<RawMessageBuilder>>
                 commandNameBuilder =
@@ -245,19 +259,30 @@ class Help {
             messageBuilder.append(" ").append(subcommandName);
             commandNameBuilder.append(" ").append(subcommandName);
         }
+        List<Parameter> options = new LinkedList<>();
+        if (Arrays.stream(commandMethod.getParameters()).anyMatch(p -> p.isAnnotationPresent(Option.class))) {
+            messageBuilder.append(" [options]");
+            commandNameBuilder.append(" [options]");
+        }
+        int i = 0;
         for (Parameter parameter : commandMethod.getParameters()) {
             if (parameter.getAnnotation(Sender.class) == null &&
-                    parameter.getAnnotation(ConfigurationValue.class) == null) {
+                    parameter.getAnnotation(ConfigurationValue.class) == null &&
+                    parameter.getAnnotation(Option.class) == null) {
                 String name = parameter.getName();
                 Optional optional = parameter.getAnnotation(Optional.class);
+                boolean vararg = i == commandMethod.getParameterCount() - 1 && parameter.getType().isArray();
                 if (optional == null) {
-                    messageBuilder.append(" <").append(name).append(">");
-                    commandNameBuilder.append(" <").append(name).append(">");
+                    messageBuilder.append(" <").append(name).append(vararg ? "..." : "").append(">");
+                    commandNameBuilder.append(" <").append(name).append(vararg ? "..." : "").append(">");
                 } else {
                     messageBuilder.append(" [").append(name).append("=").append(optional.value()).append("]");
                     commandNameBuilder.append(" [").append(name).append("=").append(optional.value()).append("]");
                 }
+            } else if (parameter.getAnnotation(Option.class) != null) {
+                options.add(parameter);
             }
+            i++;
         }
         commandNameBuilder.end().end();
 
@@ -273,6 +298,95 @@ class Help {
         if (!longDescription.isEmpty()) {
             messageBuilder.color(ChatColor.AQUA).append(longDescription).resetColor().newLine();
             rawMessageBuilder.color(ChatColor.AQUA).append(longDescription).resetColor().newLine();
+        }
+        optionsHelp(options, messageBuilders, rawMessageBuilders);
+    }
+
+    /**
+     * Generate options description.
+     * @param options available options
+     * @param messageBuilders message builders
+     * @param rawMessageBuilders raw message builders
+     */
+    private static void optionsHelp(List<Parameter> options, List<MessageBuilder> messageBuilders,
+                                    List<RawMessageBuilder> rawMessageBuilders) {
+        int i = 0;
+        int shortOptMaxLength = options.stream()
+                .filter(o -> Character.isLetterOrDigit(o.getAnnotation(Option.class).shortName()))
+                .mapToInt(o -> o.getType() == boolean.class || o.getType() == Boolean.class ?
+                        2 : 5 + o.getName().length())
+                .max().orElse(0);
+        int longOptMaxLength = options.stream()
+                .filter(o -> !o.getAnnotation(Option.class).longName().isEmpty())
+                .mapToInt(o -> 2 + o.getAnnotation(Option.class).longName().length() +
+                        (o.getType() == boolean.class || o.getType() == Boolean.class ? 0 : 3 + o.getName().length()))
+                .max().orElse(0);
+        MessageBuilder messageBuilder = null;
+        RawMessageBuilder rawMessageBuilder = null;
+        for (Parameter parameter : options) {
+            Option option = parameter.getAnnotation(Option.class);
+            if (i++ % 5 == 0) {
+                messageBuilder = new MessageBuilder();
+                rawMessageBuilder = new RawMessageBuilder();
+                messageBuilders.add(messageBuilder);
+                rawMessageBuilders.add(rawMessageBuilder);
+                messageBuilder.color(ChatColor.GREEN).append("Available options:").resetColor().newLine();
+                rawMessageBuilder.color(ChatColor.GREEN).append("Available options:").resetColor().newLine();
+            }
+            messageBuilder.append("  ");
+            rawMessageBuilder.append("  ");
+            if (shortOptMaxLength > 0) {
+                if (Character.isLetterOrDigit(option.shortName())) {
+                    messageBuilder
+                            .color(ChatColor.RED)
+                            .append("-" + option.shortName())
+                            .append(parameter.getType() == boolean.class || parameter.getType() == Boolean.class ?
+                                    Strings.repeat(" ", shortOptMaxLength - 2) :
+                                    Strings.padEnd(" <" + parameter.getName() + ">", shortOptMaxLength - 2, ' '))
+                            .resetColor()
+                            .append("  ");
+                    rawMessageBuilder
+                            .color(ChatColor.RED)
+                            .append("-" + option.shortName())
+                            .append(parameter.getType() == boolean.class || parameter.getType() == Boolean.class ?
+                                    Strings.repeat(" ", shortOptMaxLength - 2) :
+                                    Strings.padEnd(" <" + parameter.getName() + ">", shortOptMaxLength - 2, ' '))
+                            .resetColor()
+                            .append("  ");
+                } else {
+                    messageBuilder.append(Strings.repeat(" ", shortOptMaxLength + 2));
+                    rawMessageBuilder.append(Strings.repeat(" ", shortOptMaxLength + 2));
+                }
+            }
+            if (longOptMaxLength > 0) {
+                if (!option.longName().isEmpty()) {
+                    messageBuilder
+                            .color(ChatColor.RED)
+                            .append("--" + option.longName())
+                            .append(parameter.getType() == boolean.class || parameter.getType() == Boolean.class ?
+                                    Strings.repeat(" ", longOptMaxLength - 2 - option.longName().length()) :
+                                    Strings.padEnd(" <" + parameter.getName() + ">",
+                                            longOptMaxLength - 2 - option.longName().length(), ' '))
+                            .resetColor()
+                            .append("  ");
+                    rawMessageBuilder
+                            .color(ChatColor.RED)
+                            .append("--" + option.longName())
+                            .append(parameter.getType() == boolean.class || parameter.getType() == Boolean.class ?
+                                    Strings.repeat(" ", longOptMaxLength - 2 - option.longName().length()) :
+                                    Strings.padEnd(" <" + parameter.getName() + ">",
+                                            longOptMaxLength - 2 - option.longName().length(), ' '))
+                            .resetColor()
+                            .append("  ");
+                } else {
+                    messageBuilder.append(Strings.repeat(" ", longOptMaxLength + 2));
+                    rawMessageBuilder.append(Strings.repeat(" ", longOptMaxLength + 2));
+                }
+            }
+            if (!option.description().isEmpty()) {
+                messageBuilder.color(ChatColor.AQUA).append(option.description()).resetColor().newLine();
+                rawMessageBuilder.color(ChatColor.AQUA).append(option.description()).resetColor().newLine();
+            }
         }
     }
 

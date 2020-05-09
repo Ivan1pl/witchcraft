@@ -1,10 +1,8 @@
 package com.ivan1pl.witchcraft.plugin.generator;
 
-import com.ivan1pl.witchcraft.commands.annotations.Command;
-import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
+import com.ivan1pl.witchcraft.commands.annotations.*;
 import com.ivan1pl.witchcraft.commands.annotations.Optional;
-import com.ivan1pl.witchcraft.commands.annotations.Sender;
-import com.ivan1pl.witchcraft.commands.annotations.SubCommand;
+import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.core.annotations.ChildPermission;
 import com.ivan1pl.witchcraft.core.annotations.Permission;
 import com.ivan1pl.witchcraft.core.annotations.PermissionDefault;
@@ -20,6 +18,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
@@ -197,13 +196,21 @@ public class PluginGenerator extends AbstractProcessor {
             if (!subCommand.value().isEmpty()) {
                 parts.add(subCommand.value());
             }
+            if (((ExecutableElement) element).getParameters().stream()
+                    .anyMatch(e -> e.getAnnotation(Option.class) != null)) {
+                parts.add("[options]");
+            }
             List<Element> parameters = ((ExecutableElement) element).getParameters().stream()
                     .filter(e -> e.getAnnotation(Sender.class) == null)
                     .filter(e -> e.getAnnotation(ConfigurationValue.class) == null)
+                    .filter(e -> e.getAnnotation(Option.class) == null)
                     .collect(Collectors.toList());
+            int i = 0;
             for (Element parameter : parameters) {
+                boolean vararg = i == parameters.size() - 1 && parameter.asType().getKind() == TypeKind.ARRAY;
                 boolean optional = parameter.getAnnotation(Optional.class) != null;
-                parts.add(String.format(optional ? "[%s]" : "<%s>", parameter.getSimpleName()));
+                parts.add(String.format(optional ? "[%s]" : "<%s>", parameter.getSimpleName() + (vararg ? "..." : "")));
+                i++;
             }
             usageDescriptions.add(String.join(" ", parts));
         }
@@ -230,6 +237,7 @@ public class PluginGenerator extends AbstractProcessor {
         annotations.add(Sender.class.getCanonicalName());
         annotations.add(ConfigurationValue.class.getCanonicalName());
         annotations.add(Optional.class.getCanonicalName());
+        annotations.add(Option.class.getCanonicalName());
         return annotations;
     }
 }

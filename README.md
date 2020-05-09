@@ -42,7 +42,7 @@ Add dependency on `witchcraft-plugin`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-plugin</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -53,7 +53,7 @@ Add dependency on `witchcraft-plugin`:
 Add dependency on `witchcraft-plugin`:
 ```gradle
 dependencies {
-    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.5.0"
+    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.6.0"
 }
 ```
 
@@ -233,7 +233,7 @@ Add dependency on `witchcraft-plugin`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-plugin</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -244,7 +244,7 @@ Add dependency on `witchcraft-plugin`:
 Add dependency on `witchcraft-plugin`:
 ```gradle
 dependencies {
-    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.5.0"
+    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.6.0"
 }
 ```
 
@@ -459,6 +459,69 @@ tasks.withType(JavaCompile) {
 }
 ```
 
+### Varargs
+
+If the last parameter of your subcommand method is an array, all the remaining parameters will be converted into the array component type and passed to that parameter. If you use `@Adapter` or `@TabComplete` annotations for this parameter, they will be applied to each element of the array.
+
+```java
+@SubCommand("vararg1")
+@Description(shortDescription = "Varargs test", detailedDescription = "Varargs test")
+public void vararg1(@Sender CommandSender commandSender, int num, double[] doubles) {
+    commandSender.sendMessage("num=" + num + ";doubles=" + Arrays.toString(doubles));
+}
+
+@SubCommand("vararg2")
+@Description(shortDescription = "Vararg test 2", detailedDescription = "Vararg test 2")
+public void vararg2(@Sender CommandSender commandSender, String someText, Material[] materials) {
+    commandSender.sendMessage("someText=" + someText + ";materials=" + Arrays.toString(materials));
+}
+```
+
+### Options
+
+You can enable both short (`-a`) and long (`--option`) options in your command. To do that, you will need to annotate a parameter with `@Option` annotation (you can still use `@Adapter` and `@TabComplete` for option parameters). If you annotate a `boolean` or `Boolean` parameter, only the option is passed. If you annotate parameter of a different type, a value has to be passed to it (`-a value`, `--option value`).
+
+Options by definitions are not required and if you do not provide them when executing a command, `null` values will be passed (`false` for booleans). That means you should not use primitive types for option parameter (i.e. use `Integer` instead of `int`, `Long` instead of `long` etc). The only exception is `boolean`.
+
+#### Example
+
+```java
+@SubCommand("opt")
+@Description(shortDescription = "Options test", detailedDescription = "Options test")
+public void opt(@Sender CommandSender commandSender, Material material1, Material material2,
+                @Option(shortName = 'a', longName = "all", description = "All option") boolean optA,
+                @Option(longName = "list", description = "List option") boolean optL,
+                @Option(shortName = 'x', longName = "extra", max = 3, description = "Additional materials") Material[] parX,
+                @Option(shortName = 'w', description = "World") World parW) {
+    commandSender.sendMessage("material1=" + material1 + ";material2=" + material2 + ";all=" + optA + ";list=" +
+            optL + ";extra=" + Arrays.toString(parX) + ";world=" + (parW == null ? "null" : parW.getName()));
+}
+```
+
+If you use this subcommand:
+
+`/wctest opt --list -x minecraft:oak_planks -x minecraft:birch_planks minecraft:slime_block minecraft:stone`,
+
+you will see the message:
+
+`material1=SLIME_BLOCK;material2=STONE;all=false;list=true;extra=[OAK_PLANKS, BIRCH_PLANKS];world=null`.
+
+The generated help message looks like this:
+
+```
+witchcraft-test opt [options] <material1> <material2> - Options test
+Options test
+Available options:
+  -a         --all           All option
+             --list          List option
+  -x <parX>  --extra <parX>  Additional materials
+  -w <parW>                  World
+```
+
+#### Multiple values
+
+As you may have already seen in the example, you can pass multiple option values. To do that, use an array as parameter type and set `max` attribute of your `@Option` annotation. Default value is `1`, if you set it to `0` or less, the uses of this option will not be limited. If no values are passed, you will get an empty array.
+
 # Plugin.yml generation
 
 If you want to save yourself some time and avoid some of the boring work while developing your plugins, this is a feature you need. WitchCraft will generate your `plugin.yml` for you! Of course you still need to provide all the required data for generation, but it is now much easier and quicker.
@@ -475,7 +538,7 @@ Add dependency on `witchcraft-plugin-generator`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-plugin-generator</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -486,7 +549,7 @@ Add dependency on `witchcraft-plugin-generator`:
 Add dependency on `witchcraft-plugin-generator`:
 ```gradle
 dependencies {
-    annotationProcessor "com.ivan1pl.witchcraft:witchcraft-plugin-generator:0.5.0"
+    annotationProcessor "com.ivan1pl.witchcraft:witchcraft-plugin-generator:0.6.0"
 }
 ```
 
@@ -578,7 +641,7 @@ Add dependency on `witchcraft-core`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-core</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -589,7 +652,7 @@ Add dependency on `witchcraft-core`:
 Add dependency on `witchcraft-core`:
 ```gradle
 dependencies {
-    compile "com.ivan1pl.witchcraft:witchcraft-core:0.5.0"
+    compile "com.ivan1pl.witchcraft:witchcraft-core:0.6.0"
 }
 ```
 

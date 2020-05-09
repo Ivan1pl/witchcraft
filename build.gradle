@@ -63,3 +63,19 @@ allprojects {
         }
     }
 }
+
+def exportedProjects = [
+        ':witchcraft-core',
+        ':witchcraft-context',
+        ':witchcraft-commands',
+        ':witchcraft-plugin',
+        ':witchcraft-plugin-generator'
+]
+
+task allJavadoc(type: Javadoc) {
+    source exportedProjects.collect { projectName ->
+        project(projectName).sourceSets.main.allJava
+    }
+    classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
+    destinationDir = new File(buildDir, 'docs/javadoc')
+}

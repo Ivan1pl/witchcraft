@@ -160,7 +160,7 @@ public class TestCommand {
                     @Option(shortName = 'x', longName = "extra", max = 3, description = "Additional materials") Material[] parX,
                     @Option(shortName = 'w', description = "World") World parW) {
         commandSender.sendMessage("material1=" + material1 + ";material2=" + material2 + ";all=" + optA + ";list=" +
-                optL + ";extra=" + Arrays.toString(parX) + ";world=" + parW.getName());
+                optL + ";extra=" + Arrays.toString(parX) + ";world=" + (parW == null ? "null" : parW.getName()));
     }
 
     @SubCommand("manyOpts")

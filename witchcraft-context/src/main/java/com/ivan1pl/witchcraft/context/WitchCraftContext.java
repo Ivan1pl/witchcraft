@@ -2,6 +2,7 @@ package com.ivan1pl.witchcraft.context;
 
 import com.google.common.primitives.Primitives;
 import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
+import com.ivan1pl.witchcraft.context.annotations.ConfigurationValues;
 import com.ivan1pl.witchcraft.context.annotations.Managed;
 import com.ivan1pl.witchcraft.context.exception.*;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -86,21 +87,45 @@ public final class WitchCraftContext {
      * @param clazz requested type
      * @return instance of given type
      */
-    private Object attemptCreate(Class<?> clazz)
-            throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    private Object attemptCreate(Class<?> clazz) throws IllegalAccessException, InvocationTargetException,
+            InstantiationException, InitializationFailedException {
         Constructor<?> constructor = clazz.getConstructors()[0];
         Parameter[] parameterTypes = constructor.getParameters();
         Object[] parameters = new Object[parameterTypes.length];
         for (int i = 0; i < parameterTypes.length; ++i) {
             ConfigurationValue configurationValue = parameterTypes[i].getAnnotation(ConfigurationValue.class);
             if (configurationValue == null) {
-                parameters[i] = get(parameterTypes[i].getType());
+                ConfigurationValues configurationValues = parameterTypes[i].getAnnotation(ConfigurationValues.class);
+                if (configurationValues == null) {
+                    parameters[i] = get(parameterTypes[i].getType());
+                } else if (!parameterTypes[i].getType().isAssignableFrom(Properties.class)) {
+                    throw new InitializationFailedException("Parameter " + parameterTypes[i].getName() + " of type " +
+                            parameterTypes[i].getType().getCanonicalName() + " cannot be assigned from " +
+                            Properties.class.getCanonicalName());
+                } else {
+                    parameters[i] = createProperties(configurationValues);
+                }
             } else {
                 parameters[i] = javaPlugin.getConfig().getObject(
                         configurationValue.value(), Primitives.wrap(parameterTypes[i].getType()), null);
             }
         }
         return constructor.newInstance(parameters);
+    }
+
+    /**
+     * Create and fill {@link Properties} instance from configuration values.
+     */
+    private Properties createProperties(ConfigurationValues configurationValues) {
+        Properties properties = new Properties();
+        for (String key : configurationValues.keys()) {
+            String configKey = configurationValues.prefix().isEmpty() ? key : configurationValues.prefix() + "." + key;
+            String value = javaPlugin.getConfig().getString(configKey);
+            if (value != null && !value.isEmpty()) {
+                properties.setProperty(key, value);
+            }
+        }
+        return properties;
     }
 
     /**
@@ -190,7 +215,8 @@ public final class WitchCraftContext {
                 for (Parameter parameter : constructor.getParameters()) {
                     if (!parameter.getType().isAssignableFrom(javaPlugin.getClass()) &&
                             !parameter.getType().isAssignableFrom(WitchCraftContext.class) &&
-                            parameter.getAnnotation(ConfigurationValue.class) == null) {
+                            parameter.getAnnotation(ConfigurationValue.class) == null &&
+                            parameter.getAnnotation(ConfigurationValues.class) == null) {
                         int numElements = 0;
                         for (Class<?> depClass : classes) {
                             if (parameter.getType().isAssignableFrom(depClass)) {

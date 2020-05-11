@@ -1,9 +1,6 @@
 package com.ivan1pl.witchcraft.context.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Configuration value will be assigned to the parameter annotated with this annotation. If the assignment is not
@@ -11,6 +8,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
+@Documented
 public @interface ConfigurationValue {
     /**
      * Configuration key.

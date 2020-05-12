@@ -5,4 +5,5 @@ include 'witchcraft-plugin'
 include 'witchcraft-plugin-generator'
 include 'witchcraft-examples'
 include 'witchcraft-context'
+include 'witchcraft-jdbc'
 

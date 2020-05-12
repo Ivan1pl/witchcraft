@@ -4,6 +4,7 @@ version '0.6.0'
 ext {
     spigotVersion = '1.15.2-R0.1-SNAPSHOT'
     reflectionsVersion = '0.9.11'
+    commonsDbcpVersion = '2.7.0'
 }
 
 allprojects {
@@ -68,6 +69,7 @@ def exportedProjects = [
         ':witchcraft-core',
         ':witchcraft-context',
         ':witchcraft-commands',
+        ':witchcraft-jdbc',
         ':witchcraft-plugin',
         ':witchcraft-plugin-generator'
 ]

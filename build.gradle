@@ -16,6 +16,7 @@ allprojects {
     version '0.6.0'
 
     sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
     repositories {
         mavenCentral()
@@ -32,6 +33,12 @@ allprojects {
     java {
         withJavadocJar()
         withSourcesJar()
+    }
+
+    javadoc {
+        options {
+            links 'https://docs.oracle.com/javase/8/docs/api/'
+        }
     }
 
     publishing {
@@ -80,4 +87,7 @@ task allJavadoc(type: Javadoc) {
     }
     classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
     destinationDir = new File(buildDir, 'docs/javadoc')
+    options {
+        links 'https://docs.oracle.com/javase/8/docs/api/'
+    }
 }

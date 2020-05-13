@@ -44,7 +44,13 @@ public enum ParameterType {
     SQLXML(Types.SQLXML),
     REF_CURSOR(Types.REF_CURSOR),
     TIME_WITH_TIMEZONE(Types.TIME_WITH_TIMEZONE),
-    TIMESTAMP_WITH_TIMEZONE(Types.TIMESTAMP_WITH_TIMEZONE)
+    TIMESTAMP_WITH_TIMEZONE(Types.TIMESTAMP_WITH_TIMEZONE),
+    /**
+     * For internal use only. Do NOT use.
+     * @deprecated for internal use only
+     */
+    @Deprecated
+    AUTO(Integer.MIN_VALUE)
     ;
     /**
      * Numeric type code.

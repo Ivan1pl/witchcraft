@@ -1,4 +1,4 @@
-package com.ivan1pl.witchcraft.jdbc.connection;
+package com.ivan1pl.witchcraft.jdbc.statement;
 
 import java.sql.Connection;
 import java.sql.SQLException;

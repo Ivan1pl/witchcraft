@@ -53,6 +53,7 @@ public class Query implements Cloneable {
     /**
      * Create query wrapper.
      * @param sql SQL string
+     * @throws InvalidQueryException when the query is invalid
      */
     public Query(String sql) throws InvalidQueryException {
         this.sql = sql;

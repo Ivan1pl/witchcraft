@@ -216,6 +216,34 @@ The framework comes with its own set of classes annotated with `@Managed` annota
 
 There are two classes that are not annotated with `@Managed` or `@Command`, but you can still use them as dependencies in your managed classes. One of them is your main plugin class. The other is `WitchCraftContext`, which is a class that is used to manage the entire dependency injection feature and contains instances of all managed classes (which you can acquire at runtime by invoking method `get`, e.g. `witchCraftContext.get(JavaPlugin.class)` will give you your plugin instance).
 
+# Modules
+
+WitchCraft allows its users to create their own modules and hook them into the framework. This section explains how to do that. Predefined modules will be explained in separate sections.
+
+To be able to create modules, you need the exact same dependencies as for the dependency injection feature.
+
+## Creating a module
+
+To create a module, you will have to create an annotation with runtime retention policy. Then annotate your annotation with `@Module` annotation and annotate your main plugin class with it. That's it, your module is now enabled. WitchCraft will scan the entire package tree of that annotation for managed classes and add them to its context. You can then depend on them in your plugin.
+
+It may not seem very useful, and in fact in regular plugin development it is not. This is a feature designed for library/API developers who want to hook their work into the framework. Also, some of the predefined features are provided as modules, so that you can enable them if you need them, but you do not have to depend on them if you do not.
+
+## Aspects
+
+Modules come with an interesting feature that allows you to use AOP advices in your plugin or library. If you're not familiar with aspect-oriented programming, basically it allows you to add some behaviour to already existing methods, which is used to separate distinct functionalities. For example, if you want to enable logging of method invocations, you could create a method containing your business logic and add logging as an advice so that it does not clutter your code.
+
+Of course there are many more useful things that can be done with aspects, for example they could be used for database connection management, refreshing configuration, validating some data before method execution.
+
+Creating an aspect is very easy. Simply create a class, mark it as `@Managed`, implement `Aspect` interface and add it to your module's aspect list (`aspects` attribute in `@Module` annotation).
+
+The interface is very simple and self-explanatory. It contains the following methods:
+* `void beforeMethod(Object self, Method method, Object[] args)` - execute advice that should happen before method execution; `self`, `method` and `args` give you informations about the object on which the method is being executed, the method itself and its arguments.
+* `void afterMethod(Object self, Method method, Object[] args)` - execute advice that should happen after method execution.
+* `InvocationCallback aroundMethod(InvocationCallback proceed)` - execute advice that should happen around method execution.
+* `int getPriority()` - execution priority of this aspect. The lower the number, the earlier it will be executed. Default is 0 (you do not have to implement this method).
+
+The only method that may require some additional explaining is `aroundMethod`. Basically it allows you to add logic before and after the invocation at the same time. The actual invocation is carried in `proceed` parameter, wrapped by `InvocationCallback` functional interface. The interface itself contains only one method `Object apply(Object self, Method method, Object[] args)` which is used to invoke the method. Wherever you wish to invoke it in your code, simply use `proceed.apply(self, method, args);`.
+
 # Commands
 
 WitchCraft Framework provides a very simple way of defining commands using annotated classes and functions. The framework will take care of everything: annotated classes will be automatically registered and added to command

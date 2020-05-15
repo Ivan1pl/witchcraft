@@ -4,7 +4,13 @@ import com.google.common.primitives.Primitives;
 import com.ivan1pl.witchcraft.context.annotations.ConfigurationValue;
 import com.ivan1pl.witchcraft.context.annotations.ConfigurationValues;
 import com.ivan1pl.witchcraft.context.annotations.Managed;
+import com.ivan1pl.witchcraft.context.annotations.Module;
 import com.ivan1pl.witchcraft.context.exception.*;
+import com.ivan1pl.witchcraft.context.proxy.Aspect;
+import com.ivan1pl.witchcraft.context.proxy.ProxyInvocationHandler;
+import javassist.util.proxy.Proxy;
+import javassist.util.proxy.ProxyFactory;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.reflections.Reflections;
 
@@ -13,15 +19,36 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * WitchCraft's dependency injection context.
  */
 public final class WitchCraftContext {
+    /**
+     * Plugin instance.
+     */
     private final JavaPlugin javaPlugin;
+
+    /**
+     * Packages to scan.
+     */
     private final String[] basePackages;
+
+    /**
+     * Annotations indicating managed classes.
+     */
     private final List<Class<? extends Annotation>> annotations;
+
+    /**
+     * Context containing instances of all managed classes.
+     */
     private final Map<String, List<Object>> context = new HashMap<>();
+
+    /**
+     * Invocation handler for all managed classes.
+     */
+    private final ProxyInvocationHandler proxyInvocationHandler = new ProxyInvocationHandler();
 
     /**
      * Create new context for given plugin.
@@ -50,8 +77,27 @@ public final class WitchCraftContext {
     @SafeVarargs
     public WitchCraftContext(JavaPlugin javaPlugin, String[] basePackages, Class<? extends Annotation>... annotations) {
         this.javaPlugin = javaPlugin;
-        this.basePackages = basePackages;
+        this.basePackages = getBasePackages(javaPlugin, basePackages);
         this.annotations = Arrays.asList(annotations);
+    }
+
+    /**
+     * Get an array of packages to scan, including provided packages and all enabled module packages.
+     * @param javaPlugin plugin instance
+     * @param basePackages package scan path
+     * @return provided packages and all enabled module packages
+     */
+    private static String[] getBasePackages(JavaPlugin javaPlugin, String[] basePackages) {
+        List<String> packageList = Arrays.asList(basePackages);
+        for (Annotation annotation : javaPlugin.getClass().getAnnotations()) {
+            Module module = annotation.annotationType().getAnnotation(Module.class);
+            if (module != null && annotation.annotationType().getPackage() != null) {
+                javaPlugin.getLogger().info(String.format(
+                        "Detected module in package: %s", annotation.annotationType().getPackage().getName()));
+                packageList.add(annotation.annotationType().getPackage().getName());
+            }
+        }
+        return packageList.toArray(new String[0]);
     }
 
     /**
@@ -66,6 +112,7 @@ public final class WitchCraftContext {
                 for (Class<? extends Annotation> annotation : annotations) {
                     classes.addAll(new Reflections(basePackage).getTypesAnnotatedWith(annotation));
                 }
+                javaPlugin.getLogger().info(String.format("Package scan completed for package: %s", basePackage));
             }
             Queue<Class<?>> creationQueue = new CreationQueueBuilder(javaPlugin, classes).createQueue();
 
@@ -77,8 +124,24 @@ public final class WitchCraftContext {
                 Object instance = attemptCreate(clazz);
                 add(instance);
             }
+
+            initAspects();
         } catch (Exception e) {
             throw new InitializationFailedException("Failed to initialize WitchCraft context", e);
+        }
+    }
+
+    /**
+     * Find all declared aspects and add them to invocation handler.
+     */
+    private void initAspects() {
+        for (Annotation annotation : javaPlugin.getClass().getAnnotations()) {
+            Module module = annotation.annotationType().getAnnotation(Module.class);
+            if (module != null) {
+                for (Class<? extends Aspect> aspect : module.aspects()) {
+                    proxyInvocationHandler.addAspect(get(aspect));
+                }
+            }
         }
     }
 
@@ -88,7 +151,7 @@ public final class WitchCraftContext {
      * @return instance of given type
      */
     private Object attemptCreate(Class<?> clazz) throws IllegalAccessException, InvocationTargetException,
-            InstantiationException, InitializationFailedException {
+            InstantiationException, InitializationFailedException, NoSuchMethodException {
         Constructor<?> constructor = clazz.getConstructors()[0];
         Parameter[] parameterTypes = constructor.getParameters();
         Object[] parameters = new Object[parameterTypes.length];
@@ -110,7 +173,29 @@ public final class WitchCraftContext {
                         configurationValue.value(), Primitives.wrap(parameterTypes[i].getType()), null);
             }
         }
-        return constructor.newInstance(parameters);
+        return createProxy(clazz, parameterTypes, parameters);
+    }
+
+    /**
+     * Create proxy of given class. This will create proxy of any given class except aspects.
+     * @param clazz class to proxy
+     * @param parameterDefinitions constructor parameter definitions
+     * @param parameters constructor parameters
+     * @return proxy instance (or just an object of the requested type in case of aspects)
+     */
+    private Object createProxy(Class<?> clazz, Parameter[] parameterDefinitions, Object[] parameters)
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Class<?>[] parameterTypes = Stream.of(parameterDefinitions).map(Parameter::getType).toArray(Class[]::new);
+        if (Aspect.class.isAssignableFrom(clazz) || Listener.class.isAssignableFrom(clazz)) {
+            return clazz.getConstructor(parameterTypes).newInstance(parameters);
+        } else {
+            ProxyFactory f = new ProxyFactory();
+            f.setSuperclass(clazz);
+            Class<?> proxyClass = f.createClass();
+            Proxy proxy = (Proxy) proxyClass.getConstructor(parameterTypes).newInstance(parameters);
+            proxy.setHandler(proxyInvocationHandler);
+            return proxy;
+        }
     }
 
     /**

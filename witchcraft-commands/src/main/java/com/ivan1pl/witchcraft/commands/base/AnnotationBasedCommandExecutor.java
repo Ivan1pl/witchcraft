@@ -27,9 +27,10 @@ public class AnnotationBasedCommandExecutor implements TabExecutor {
      * @throws CommandAlreadyExistsException when there are several commands with the same name, or there are several
      *                                       subcommands with the same name within a single command
      * @throws CommandDefinitionNotFoundException when command definition does not exist in {@code plugin.yml} file
+     * @throws NoSuchMethodException when the context contains a malformed command proxy
      */
     public AnnotationBasedCommandExecutor(JavaPlugin javaPlugin, WitchCraftContext witchCraftContext)
-            throws CommandAlreadyExistsException, CommandDefinitionNotFoundException {
+            throws CommandAlreadyExistsException, CommandDefinitionNotFoundException, NoSuchMethodException {
         String basePackage = javaPlugin.getClass().getPackage() == null ?
                 null : javaPlugin.getClass().getPackage().getName();
         Plugin plugin = javaPlugin.getClass().getAnnotation(Plugin.class);

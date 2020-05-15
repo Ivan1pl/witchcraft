@@ -33,7 +33,7 @@ class CommandHolder {
     private final DefaultAdapters defaultAdapters;
     private final DefaultCompleters defaultCompleters;
     private final WitchCraftContext witchCraftContext;
-    private final Map<String, Method> subcommands = new HashMap<>();
+    private final Map<String, MethodHolder> subcommands = new HashMap<>();
 
     /**
      * Create new instance.
@@ -43,10 +43,12 @@ class CommandHolder {
      * @param commandDescription command description
      * @param commandClass command class
      * @throws CommandAlreadyExistsException when there are several subcommands with the same name
+     * @throws NoSuchMethodException when an object in context is actually a malformed proxy which does not contain a
+     *                               method from the superclass; this should never happen
      */
     CommandHolder(JavaPlugin javaPlugin, WitchCraftContext witchCraftContext, String commandName,
                   String commandDescription, Class<?> commandClass)
-            throws CommandAlreadyExistsException {
+            throws CommandAlreadyExistsException, NoSuchMethodException {
         this.javaPlugin = javaPlugin;
         this.commandName = commandName;
         this.commandDescription = commandDescription;
@@ -54,29 +56,33 @@ class CommandHolder {
         this.defaultAdapters = witchCraftContext.get(DefaultAdapters.class);
         this.defaultCompleters = witchCraftContext.get(DefaultCompleters.class);
         this.witchCraftContext = witchCraftContext;
-        initSubcommands();
+        initSubcommands(commandClass);
     }
 
     /**
      * Scan command class for methods annotated with {@link SubCommand} annotation.
+     * @param commandClass command class
      * @throws CommandAlreadyExistsException when there are two subcommands with the same name
+     * @throws NoSuchMethodException when an object is actually a malformed proxy which does not contain a method from
+     *                               the superclass; this should never happen
      */
-    private void initSubcommands() throws CommandAlreadyExistsException {
-        for (Method m : commandObject.getClass().getMethods()) {
+    private void initSubcommands(Class<?> commandClass) throws CommandAlreadyExistsException, NoSuchMethodException {
+        for (Method m : commandClass.getMethods()) {
             SubCommand subCommand = m.getAnnotation(SubCommand.class);
             if (subCommand != null) {
                 javaPlugin.getLogger().info(String.format("Processing subcommand: %s", subCommand.value()));
-                Method method = subcommands.get(subCommand.value());
-                if (method != null) {
+                MethodHolder methodHolder = subcommands.get(subCommand.value());
+                if (methodHolder != null) {
                     throw new CommandAlreadyExistsException(String.format(
                             "Subcommand \"%s\" already exists within command %s", subCommand.value(), commandName));
                 }
-                subcommands.put(subCommand.value(), m);
+                subcommands.put(subCommand.value(), new MethodHolder(
+                        commandObject.getClass().getMethod(m.getName(), m.getParameterTypes()), m));
                 javaPlugin.getLogger().info(String.format("Registered subcommand: %s", subCommand.value()));
             }
         }
         if (!subcommands.containsKey("help")) {
-            subcommands.put("help", null);
+            subcommands.put("help", new MethodHolder(null, null));
         }
     }
 
@@ -100,7 +106,7 @@ class CommandHolder {
             for (String subCommandName : subcommands.keySet()) {
                 int argsIndex = subCommandName.isEmpty() ? 0 : 1;
                 if (subCommandName.equals(first) || subCommandName.isEmpty()) {
-                    if ("help".equalsIgnoreCase(first) && subcommands.get("help") == null) {
+                    if ("help".equalsIgnoreCase(first) && subcommands.get("help").getOriginalMethod() == null) {
                         Help.help(commandSender, commandName, commandDescription, args.length > 1 ? args[1] : null,
                                 args.length > 2 ? args[2] : null, subcommands);
                         return true;
@@ -150,10 +156,10 @@ class CommandHolder {
      * @param argsIndex index of the first parameter
      * @return {@code true} if arguments match with method parameters, {@code false} otherwise
      */
-    private ExecutionStatus match(Method m, CommandSender commandSender, String[] args, int argsIndex) {
-        Object[] params = new Object[m.getParameterCount()];
-        Parameter[] methodParameters = m.getParameters();
-        SubCommand subCommand = m.getAnnotation(SubCommand.class);
+    private ExecutionStatus match(MethodHolder m, CommandSender commandSender, String[] args, int argsIndex) {
+        Object[] params = new Object[m.getOriginalMethod().getParameterCount()];
+        Parameter[] methodParameters = m.getOriginalMethod().getParameters();
+        SubCommand subCommand = m.getOriginalMethod().getAnnotation(SubCommand.class);
         if (subCommand != null && !subCommand.permission().isEmpty()) {
             if (!commandSender.hasPermission(subCommand.permission())) {
                 return ExecutionStatus.CANNOT_EXECUTE;
@@ -267,7 +273,7 @@ class CommandHolder {
             }
         }
         try {
-            m.invoke(commandObject, params);
+            m.getProxyMethod().invoke(commandObject, params);
             return ExecutionStatus.SUCCESS;
         } catch (IllegalAccessException | InvocationTargetException e) {
             javaPlugin.getLogger().severe(
@@ -346,9 +352,9 @@ class CommandHolder {
             int argsIndex = subCommandName.isEmpty() ? 0 : 1;
             if (subCommandName.equals(first) && args.length > 1 || subCommandName.isEmpty()) {
                 if ("help".equalsIgnoreCase(first) && subcommands.get("help") == null && args.length == 2) {
-                    for (Map.Entry<String, Method> methodEntry : subcommands.entrySet()) {
+                    for (Map.Entry<String, MethodHolder> methodEntry : subcommands.entrySet()) {
                         if (methodEntry.getKey().startsWith(args[1]) && !methodEntry.getKey().isEmpty()) {
-                            Method m = methodEntry.getValue();
+                            Method m = methodEntry.getValue().getOriginalMethod();
                             SubCommand subCommand = m == null ? null : m.getAnnotation(SubCommand.class);
                             if (subCommand == null || subCommand.permission().isEmpty() ||
                                     commandSender.hasPermission(subCommand.permission())) {
@@ -357,11 +363,11 @@ class CommandHolder {
                         }
                     }
                 } else {
-                    suggestions.addAll(
-                            getTabCompletions(commandSender, subcommands.get(subCommandName), args, argsIndex));
+                    suggestions.addAll(getTabCompletions(commandSender,
+                            subcommands.get(subCommandName).getOriginalMethod(), args, argsIndex));
                 }
             } else if (args.length == 1 && subCommandName.toLowerCase().startsWith(args[0].toLowerCase())) {
-                Method m = subcommands.get(subCommandName);
+                Method m = subcommands.get(subCommandName).getOriginalMethod();
                 if ("help".equals(subCommandName) && m == null) {
                     suggestions.add("help");
                 } else {

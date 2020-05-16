@@ -32,7 +32,7 @@ public class Score {
 
     /**
      * Set name.
-     *
+     * <p>
      * The name of the player whose score should be displayed. Selectors (such as {@code @p}) can be used, in addition
      * to "fake" player names created by the scoreboard system. In addition, if the name is "*", it shows the reader's
      * own score (for example, {@code /tellraw @a {"score":{"name":"*","objective":"obj"}}} shows every online player
@@ -54,7 +54,7 @@ public class Score {
 
     /**
      * Set objective.
-     *
+     * <p>
      * The internal name of the objective to display the player's score in.
      *
      * @param objective objective to set
@@ -73,7 +73,7 @@ public class Score {
 
     /**
      * Set value.
-     *
+     * <p>
      * Optional. If present, this value is used regardless of what the score would have been.
      *
      * @param value value to set

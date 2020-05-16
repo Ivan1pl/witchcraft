@@ -19,7 +19,7 @@ public class ScoreRawMessage extends BaseRawMessage {
 
     /**
      * Set score.
-     *
+     * <p>
      * A player's score in an objective. Displays nothing if the player is not tracked in the given objective.
      *
      * @param score score to set

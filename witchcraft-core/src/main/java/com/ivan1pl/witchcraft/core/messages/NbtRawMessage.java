@@ -42,7 +42,7 @@ public class NbtRawMessage extends BaseRawMessage {
 
     /**
      * Set nbt.
-     *
+     * <p>
      * A string indicating the NBT path used for looking up NBT values from an entity, a block entity or a command
      * storage. Ignored when any of the previous fields exist in the root object.
      *
@@ -62,7 +62,7 @@ public class NbtRawMessage extends BaseRawMessage {
 
     /**
      * Set interpret modifier.
-     *
+     * <p>
      * A boolean to indicate whether the game should interpret the SNBT value at the path indicated by {@link #nbt} as a
      * raw JSON text (according to this raw JSON text structure).
      *
@@ -82,7 +82,7 @@ public class NbtRawMessage extends BaseRawMessage {
 
     /**
      * Set block.
-     *
+     * <p>
      * A string specifying the coordinates of the block entity from which the NBT value is obtained. The coordinates can
      * be absolute or relative.
      *
@@ -102,7 +102,7 @@ public class NbtRawMessage extends BaseRawMessage {
 
     /**
      * Set entity.
-     *
+     * <p>
      * A string specifying the target selector for the entity from which the NBT value is obtained.
      *
      * @param entity entity to set
@@ -121,7 +121,7 @@ public class NbtRawMessage extends BaseRawMessage {
 
     /**
      * Set storage.
-     *
+     * <p>
      * A string specifying the namespaced ID of the command storage from which the NBT value is obtained.
      *
      * @param storage storage to set

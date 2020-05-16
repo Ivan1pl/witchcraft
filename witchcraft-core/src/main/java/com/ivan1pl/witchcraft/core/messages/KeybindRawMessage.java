@@ -21,7 +21,7 @@ public class KeybindRawMessage extends BaseRawMessage {
 
     /**
      * Set keybind.
-     *
+     * <p>
      * A string that can be used to display the key needed to perform a certain action. An example is
      * {@code key.inventory} which always displays "E" unless the player has set a different key for opening their
      * inventory.

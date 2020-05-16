@@ -26,7 +26,7 @@ public class TextHoverEvent extends HoverEvent {
 
     /**
      * Set value.
-     *
+     * <p>
      * Can be either a raw string of text or an object with the same formatting as this base object. Note that
      * {@link com.ivan1pl.witchcraft.core.messages.BaseRawMessage#setClickEvent} and
      * {@link com.ivan1pl.witchcraft.core.messages.BaseRawMessage#setHoverEvent} do not function within the tooltip, but

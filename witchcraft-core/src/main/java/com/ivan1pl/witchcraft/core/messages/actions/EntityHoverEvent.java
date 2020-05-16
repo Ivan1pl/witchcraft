@@ -20,7 +20,7 @@ public class EntityHoverEvent extends HoverEvent {
 
     /**
      * Set value.
-     *
+     * <p>
      * Can be string formatted like a compound with the string values "type" (such as "Zombie"), "name", and "id"
      * (should be an entity UUID, but can actually be any string).
      *

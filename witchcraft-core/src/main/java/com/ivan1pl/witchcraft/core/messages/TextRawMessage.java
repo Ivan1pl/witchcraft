@@ -20,7 +20,7 @@ public class TextRawMessage extends BaseRawMessage {
 
     /**
      * Set text.
-     *
+     * <p>
      * A string representing raw text to display directly in chat. Can use escape characters, such as {@code \n} for
      * newline (enter), {@code \t} for tab, etc.
      *

@@ -9,7 +9,7 @@ public class SelectorRawMessage extends BaseRawMessage {
      * selector arguments. Unlike {@link TextRawMessage#setText}, the selector is translated into the correct
      * player/entity names. If more than one player/entity is detected by the selector, it is displayed in a form such
      * as 'Name1 and Name2' or 'Name1, Name2, Name3, and Name4'.
-     *
+     * <p>
      * Clicking a player's name inserted into a {@code /tellraw} command this way suggests a command to whisper to that
      * player. Shift-clicking a player's name inserts that name into chat. Shift-clicking a non-player entity's name
      * inserts its UUID into chat.
@@ -26,12 +26,12 @@ public class SelectorRawMessage extends BaseRawMessage {
 
     /**
      * Set selector.
-     *
+     * <p>
      * A string containing a selector ({@code @p},{@code @a},{@code @r},{@code @e} or {@code @s}) and, optionally,
      * selector arguments. Unlike {@link TextRawMessage#setText}, the selector is translated into the correct
      * player/entity names. If more than one player/entity is detected by the selector, it is displayed in a form such
      * as 'Name1 and Name2' or 'Name1, Name2, Name3, and Name4'.
-     *
+     * <p>
      * Clicking a player's name inserted into a {@code /tellraw} command this way suggests a command to whisper to that
      * player. Shift-clicking a player's name inserts that name into chat. Shift-clicking a non-player entity's name
      * inserts its UUID into chat.

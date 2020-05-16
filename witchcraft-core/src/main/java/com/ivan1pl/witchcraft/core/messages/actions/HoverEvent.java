@@ -17,7 +17,7 @@ public abstract class HoverEvent {
 
     /**
      * Get action.
-     *
+     * <p>
      * The type of tooltip to show.
      *
      * @return action

@@ -595,6 +595,16 @@ Don't forget to include your database driver in the classpath.
 
 For more advanced users, here is a full list of configuration values you can set (all keys use the same prefix `witchcraft.jdbc.`): `defaultAutoCommit`, `defaultReadOnly`, `defaultTransactionIsolation`, `defaultCatalog`, `defaultSchema`, `cacheState`, `driverClassName`, `lifo`, `maxTotal`, `maxIdle`, `minIdle`, `initialSize`, `maxWaitMillis`, `testOnCreate`, `testOnBorrow`, `testOnReturn`, `timeBetweenEvictionRunsMillis`, `numTestsPerEvictionRun`, `minEvictableIdleTimeMillis`, `softMinEvictableIdleTimeMillis`, `evictionPolicyClassName`, `testWhileIdle`, `password`, `url`, `username`, `validationQuery`, `validationQueryTimeout`, `jmxName`, `connectionFactoryClassName`, `connectionInitSqls`, `accessToUnderlyingConnectionAllowed`, `removeAbandonedOnBorrow`, `removeAbandonedOnMaintenance`, `removeAbandonedTimeout`, `logAbandoned`, `abandonedUsageTracking`, `poolPreparedStatements`, `maxOpenPreparedStatements`, `connectionProperties`, `maxConnLifetimeMillis`, `logExpiredConnections`, `rollbackOnReturn`, `enableAutoCommitOnReturn`, `defaultQueryTimeout`, `fastFailValidation`. Their purpose is described [here](https://commons.apache.org/proper/commons-dbcp/configuration.html).
 
+Example configuration file used to connect to PostgreSQL database:
+```yml
+witchcraft:
+  jdbc:
+    url: jdbc:postgresql://localhost:5432/witchcraft
+    username: witchcraft
+    password: witchcraft
+    driverClassName: myplugin.shaded.org.postgresql.Driver
+```
+
 ## Statement template
 
 JDBC module encourages the use of built-in `StatementTemplate` class. If you use it, you will no longer need to deal with establishing and closing connections, preparing and closing statements and other database-related operations cluttering your code.

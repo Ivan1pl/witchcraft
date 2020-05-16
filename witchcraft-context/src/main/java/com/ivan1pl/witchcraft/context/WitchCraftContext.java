@@ -266,7 +266,7 @@ public final class WitchCraftContext {
 
     /**
      * Clear the context.
-     *
+     * <p>
      * Warning: the plugin might not work properly after invoking this method.
      */
     public void clear() {

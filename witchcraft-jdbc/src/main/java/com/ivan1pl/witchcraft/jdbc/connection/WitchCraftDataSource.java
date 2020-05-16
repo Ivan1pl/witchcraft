@@ -3,12 +3,15 @@ package com.ivan1pl.witchcraft.jdbc.connection;
 import com.ivan1pl.witchcraft.context.annotations.ConfigurationValues;
 import com.ivan1pl.witchcraft.context.annotations.Managed;
 import com.ivan1pl.witchcraft.jdbc.exception.InitializationException;
+import com.ivan1pl.witchcraft.jdbc.transaction.Isolation;
+import com.ivan1pl.witchcraft.jdbc.transaction.TransactionConnectionWrapper;
 import org.apache.commons.dbcp2.BasicDataSourceFactory;
 
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.*;
 import java.util.Properties;
+import java.util.Stack;
 import java.util.logging.Logger;
 
 /**
@@ -16,7 +19,15 @@ import java.util.logging.Logger;
  */
 @Managed
 public class WitchCraftDataSource implements DataSource {
+    /**
+     * Wrapped data source.
+     */
     private final DataSource dataSource;
+
+    /**
+     * Active transactions managed by WitchCraft per thread.
+     */
+    private final ThreadLocal<Stack<Connection>> activeTransactions = new ThreadLocal<>();
 
     /**
      * Constructor.
@@ -53,6 +64,10 @@ public class WitchCraftDataSource implements DataSource {
      */
     @Override
     public Connection getConnection() throws SQLException {
+        Stack<Connection> connections = activeTransactions.get();
+        if (connections != null && !connections.empty()) {
+            return connections.peek();
+        }
         return dataSource.getConnection();
     }
 
@@ -65,12 +80,16 @@ public class WitchCraftDataSource implements DataSource {
      */
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
+        Stack<Connection> connections = activeTransactions.get();
+        if (connections != null && !connections.empty()) {
+            return connections.peek();
+        }
         return dataSource.getConnection(username, password);
     }
 
     /**
      * Retrieves the log writer for this {@link DataSource} object.
-     *
+     * <p>
      * The log writer is a character output stream to which all logging and tracing messages for this data source will
      * be printed. This includes messages printed by the methods of this object, messages printed by methods of other
      * objects manufactured by this object, and so on. Messages printed to a data source specific log writer are not
@@ -88,7 +107,7 @@ public class WitchCraftDataSource implements DataSource {
 
     /**
      * Sets the log writer for this {@link DataSource} object to the given {@link PrintWriter} object.
-     *
+     * <p>
      * The log writer is a character output stream to which all logging and tracing messages for this data source will
      * be printed. This includes messages printed by the methods of this object, messages printed by methods of other
      * objects manufactured by this object, and so on. Messages printed to a data source specific log writer are not
@@ -178,5 +197,55 @@ public class WitchCraftDataSource implements DataSource {
             return true;
         }
         return dataSource.isWrapperFor(iface);
+    }
+
+    /**
+     * Create a non-closeable connection assigned to the current thread, with auto-commit mode turned off and isolation
+     * level set to given {@code isolation}.
+     *
+     * @param isolation transaction isolation level
+     * @return connection holding the new transaction
+     * @throws SQLException if an exception is thrown while acquiring the connection
+     */
+    @SuppressWarnings("MagicConstant")
+    public Connection pushTransaction(Isolation isolation) throws SQLException {
+        Connection connection = dataSource.getConnection();
+        connection.setAutoCommit(false);
+        if (isolation.getLevel() != null) {
+            connection.setTransactionIsolation(isolation.getLevel());
+        }
+        Stack<Connection> connections = activeTransactions.get();
+        if (connections == null) {
+            activeTransactions.set(connections = new Stack<>());
+        }
+        TransactionConnectionWrapper transactionConnectionWrapper = new TransactionConnectionWrapper(connection);
+        connections.push(transactionConnectionWrapper);
+        return transactionConnectionWrapper;
+    }
+
+    /**
+     * Get current transaction (if active).
+     *
+     * @return current transaction
+     */
+    public Connection getTransaction() {
+        Stack<Connection> connections = activeTransactions.get();
+        if (connections != null && !connections.empty()) {
+            return connections.peek();
+        }
+        return null;
+    }
+
+    /**
+     * Remove current transaction from the transaction stack.
+     *
+     * @return current transaction (if active)
+     */
+    public Connection popTransaction() {
+        Stack<Connection> connections = activeTransactions.get();
+        if (connections != null && !connections.empty()) {
+            return connections.pop();
+        }
+        return null;
     }
 }

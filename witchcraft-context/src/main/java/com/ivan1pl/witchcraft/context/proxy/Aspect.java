@@ -35,9 +35,8 @@ public interface Aspect {
      * @param proceed proceed logic, containing the method for which the advice is being created and the logic of all
      *                advices with lower priority than this one.
      * @return an invocation callback to be passed as {@code proceed} method to the advice around this one
-     * @throws Throwable if the advice or method execution fails
      */
-    InvocationCallback aroundMethod(InvocationCallback proceed) throws Throwable;
+    InvocationCallback aroundMethod(InvocationCallback proceed);
 
     /**
      * Get execution priority of this aspect. The lower the number, the earlier it will be executed.

@@ -237,12 +237,14 @@ Of course there are many more useful things that can be done with aspects, for e
 Creating an aspect is very easy. Simply create a class, mark it as `@Managed`, implement `Aspect` interface and add it to your module's aspect list (`aspects` attribute in `@Module` annotation).
 
 The interface is very simple and self-explanatory. It contains the following methods:
-* `void beforeMethod(Object self, Method method, Object[] args)` - execute advice that should happen before method execution; `self`, `method` and `args` give you informations about the object on which the method is being executed, the method itself and its arguments.
-* `void afterMethod(Object self, Method method, Object[] args)` - execute advice that should happen after method execution.
+* `void beforeMethod(Object self, Method method, Method originalMethod, Object[] args)` - execute advice that should happen before method execution; `self`, `method` and `args` give you informations about the object on which the method is being executed, the method itself and its arguments, `originalMethod` is the original method that would have been invoked if there were no advices, you should not use it directly but you can for example process its annotations.
+* `void afterMethod(Object self, Method method, Method originalMethod, Object[] args)` - execute advice that should happen after method execution.
 * `InvocationCallback aroundMethod(InvocationCallback proceed)` - execute advice that should happen around method execution.
 * `int getPriority()` - execution priority of this aspect. The lower the number, the earlier it will be executed. Default is 0 (you do not have to implement this method).
 
-The only method that may require some additional explaining is `aroundMethod`. Basically it allows you to add logic before and after the invocation at the same time. The actual invocation is carried in `proceed` parameter, wrapped by `InvocationCallback` functional interface. The interface itself contains only one method `Object apply(Object self, Method method, Object[] args)` which is used to invoke the method. Wherever you wish to invoke it in your code, simply use `proceed.apply(self, method, args);`.
+The only method that may require some additional explaining is `aroundMethod`. Basically it allows you to add logic before and after the invocation at the same time. The actual invocation is carried in `proceed` parameter, wrapped by `InvocationCallback` functional interface. The interface itself contains only one method `Object apply(Object self, Method method, Method originalMethod, Object[] args)` which is used to invoke the method. Wherever you wish to invoke it in your code, simply use `proceed.apply(self, method, originalMethod, args);`.
+
+Aspects will be applied to all methods in all managed classes, expect classes implementing `Aspect` or `Listener` interface.
 
 # Commands
 
@@ -549,6 +551,90 @@ Available options:
 #### Multiple values
 
 As you may have already seen in the example, you can pass multiple option values. To do that, use an array as parameter type and set `max` attribute of your `@Option` annotation. Default value is `1`, if you set it to `0` or less, the uses of this option will not be limited. If no values are passed, you will get an empty array.
+
+# JDBC module
+
+WitchCraft comes with its own JDBC module that can be enabled if you need it, but does not need to be included in your classpath. This module makes database connection management very easy. It will create connections for you, it supports named query parameters and greatly simplifies transaction management. And it will work with any JDBC you want! You can use PostgreSQL, MySQL, Oracle, pretty much any database for which a JDBC driver exists.
+
+## Setup
+
+To use any module, you will need to setup dependency injection first. This was explained earlier in this document. When that's done, you will need to add `witchcraft-jdbc` library to your project.
+
+### Maven
+
+Add dependency on `witchcraft-jdbc`:
+```xml
+<dependencies>
+    <dependency>
+        <groupId>com.ivan1pl.witchcraft</groupId>
+        <artifactId>witchcraft-jdbc</artifactId>
+        <version>0.6.0</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>
+```
+
+### Gradle
+
+Add dependency on `witchcraft-jdbc`:
+```gradle
+dependencies {
+    compile "com.ivan1pl.witchcraft:witchcraft-jdbc:0.6.0"
+}
+```
+
+### Setup
+
+Then simply annotate your main plugin class with `@EnableJdbc` annotation. This will add a managed class implementing `javax.sql.DataSource`, which you can use as a dependency in your managed classes. Connection with the database will be created automatically from the provided configuration values. You will need to provide the following configuration values:
+* `witchcraft.jdbc.url` - database url
+* `witchcraft.jdbc.username` - database user
+* `witchcraft.jdbc.password` - database password
+* `witchcraft.jdbc.driverClassName` - your database driver class name
+
+Don't forget to include your database driver in the classpath.
+
+For more advanced users, here is a full list of configuration values you can set (all keys use the same prefix `witchcraft.jdbc.`): `defaultAutoCommit`, `defaultReadOnly`, `defaultTransactionIsolation`, `defaultCatalog`, `defaultSchema`, `cacheState`, `driverClassName`, `lifo`, `maxTotal`, `maxIdle`, `minIdle`, `initialSize`, `maxWaitMillis`, `testOnCreate`, `testOnBorrow`, `testOnReturn`, `timeBetweenEvictionRunsMillis`, `numTestsPerEvictionRun`, `minEvictableIdleTimeMillis`, `softMinEvictableIdleTimeMillis`, `evictionPolicyClassName`, `testWhileIdle`, `password`, `url`, `username`, `validationQuery`, `validationQueryTimeout`, `jmxName`, `connectionFactoryClassName`, `connectionInitSqls`, `accessToUnderlyingConnectionAllowed`, `removeAbandonedOnBorrow`, `removeAbandonedOnMaintenance`, `removeAbandonedTimeout`, `logAbandoned`, `abandonedUsageTracking`, `poolPreparedStatements`, `maxOpenPreparedStatements`, `connectionProperties`, `maxConnLifetimeMillis`, `logExpiredConnections`, `rollbackOnReturn`, `enableAutoCommitOnReturn`, `defaultQueryTimeout`, `fastFailValidation`. Their purpose is described [here](https://commons.apache.org/proper/commons-dbcp/configuration.html).
+
+## Statement template
+
+JDBC module encourages the use of built-in `StatementTemplate` class. If you use it, you will no longer need to deal with establishing and closing connections, preparing and closing statements and other database-related operations cluttering your code.
+
+The class comes with the following methods:
+* `<T> List<T> query(Query query, RowMapper<T> rowMapper)` - execute select query and map the result to a list of objects using given row mapper to map from database columns to java objects
+* `<T> List<T> query(Query query, Class<T> requestedType)` - execute a single column select query and map the result to a list of objects of the requested type
+* `ResultSet query(Query query)` - execute query and get the result set
+* `<T> T queryForObject(Query query, RowMapper<T> rowMapper)` - query for a single object if you're sure your query will return exactly one row
+* `<T> T queryForObject(Query query, Class<T> requestedType)` - query for a single object if you're sure your query will return exactly one row
+* `int update(Query query)` - execute update or insert query, return updated rows count
+* `<T> List<T> update(Query query, RowMapper<T> rowMapper, String... autoGeneratedColumnNames)` - execute insert query and retrieve automatically generated data (e.g. auto-increment columns); some drivers require `autoGeneratedColumnNames` to be passed to this method to provide names of the columns that contain automatically generated data
+* `<T> List<T> update(Query query, Class<T> requestedType, String... autoGeneratedColumnNames)` - execute insert query and retrieve automatically generated data (e.g. auto-increment columns); some drivers require `autoGeneratedColumnNames` to be passed to this method to provide names of the columns that contain automatically generated data
+* `<T> T executeStatement(StatementCallback<T> statementCallback)` - execute statement, the callback is a functional interface in which you can deal with already created statement
+* `<T> T execute(String sql, CallableStatementCallback<T> callableStatementCallback)` - execute callable statement, the callback is a functional interface in which you can deal with already prepared call
+* `<T> T execute(String sql, PreparedStatementCallback<T> preparedStatementCallback)` - execute prepared statement, the callback is a functional interface in which you can deal with already prepared statement
+
+## Query
+
+This class supports queries with parameters just like prepared statements do, but it also supports named parameters, so that you can write queries like this: `INSERT INTO USER_DATA (username, data) VALUES (:user, :data)`. Then simply set parameter values and execute query:
+```java
+Query query = new Query("INSERT INTO USER_DATA (username, data) VALUES (:user, :data)");
+query.setParameter("user", user);
+query.setParameter("data", data);
+List<Integer> autoGeneratedIds = statementTemplate.update(query, Integer.class);
+```
+
+## Transactions
+
+This module comes with automated transaction management. If you want to do something inside a database transaction, simply annotate your method with `@Transactional`. A transaction will be automatically started before that method is invoked and it will automatically be commited after the invocation (or rolled back if an exception occurs). You can provide specific transaction isolation leven in this annotation, as well as control how the transactions are created (whether a new transaction should be created every time it's invoked, or existing transactions should be used, or any existing transactions should be suspended and the method should not use transactions). You can also provide exception types for which the transaction should be rolled back (by default it rolls back for all exceptions).
+
+**Warning:** this will not work if your class implements `Aspect` or `Listener` interfaces (which it should not, because database operations should be invoked asynchronously anyway).
+
+## Shading
+
+As explained later in this document, you should shade your jar when using external libraries. If you use this module, you will also need to relocate, apart from packages mentioned there, the following packages:
+* `org.apache.commons.dbcp2`
+* `org.apache.commons.pool2`
+* `org.apache.commons.logging`
+* your database driver
 
 # Plugin.yml generation
 

@@ -48,7 +48,7 @@ public class Query implements Cloneable {
     /**
      * Maximum number of rows that can be returned from the database.
      */
-    private int maxRows;
+    private int maxRows = -1;
 
     /**
      * Create query wrapper.

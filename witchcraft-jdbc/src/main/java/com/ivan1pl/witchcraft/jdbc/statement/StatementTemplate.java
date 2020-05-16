@@ -307,6 +307,10 @@ public class StatementTemplate {
             }
         }
 
+        if (query.getMaxRows() > 0) {
+            preparedStatement.setMaxRows(query.getMaxRows());
+        }
+
         return preparedStatement;
     }
 }

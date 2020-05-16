@@ -11,26 +11,26 @@ public interface Aspect {
      * @param self the proxy instance
      * @param method the forwarder method for invoking the overridden method. It is null if the overridden method is
      *               abstract or declared in the interface
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args an array of objects containing the values of the arguments passed in the method invocation on the
      *             proxy instance. If a parameter type is a primitive type, the type of the array element is a wrapper
      *             class
      * @throws Throwable if the advice fails
      */
-    void beforeMethod(Object self, Method method, Method proxyMethod, Object[] args) throws Throwable;
+    void beforeMethod(Object self, Method method, Method originalMethod, Object[] args) throws Throwable;
 
     /**
      * Execute advice that should happen after method execution.
      * @param self the proxy instance
      * @param method the forwarder method for invoking the overridden method. It is null if the overridden method is
      *               abstract or declared in the interface
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args an array of objects containing the values of the arguments passed in the method invocation on the
      *             proxy instance. If a parameter type is a primitive type, the type of the array element is a wrapper
      *             class
      * @throws Throwable if the advice fails
      */
-    void afterMethod(Object self, Method method, Method proxyMethod, Object[] args) throws Throwable;
+    void afterMethod(Object self, Method method, Method originalMethod, Object[] args) throws Throwable;
 
     /**
      * Execute advice that should happen around method execution.

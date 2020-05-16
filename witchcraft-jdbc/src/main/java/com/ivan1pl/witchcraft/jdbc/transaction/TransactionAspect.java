@@ -9,7 +9,6 @@ import com.ivan1pl.witchcraft.jdbc.exception.TransactionNotSupportedException;
 
 import java.lang.reflect.Method;
 import java.sql.Connection;
-import java.util.Arrays;
 
 /**
  * Aspect dealing with automatic transaction management.
@@ -35,13 +34,13 @@ public class TransactionAspect implements Aspect {
      * @param self   the proxy instance
      * @param method the forwarder method for invoking the overridden method. It is null if the overridden method is
      *               abstract or declared in the interface
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args   an array of objects containing the values of the arguments passed in the method invocation on the
      *               proxy instance. If a parameter type is a primitive type, the type of the array element is a wrapper
      *               class
      */
     @Override
-    public void beforeMethod(Object self, Method method, Method proxyMethod, Object[] args) {
+    public void beforeMethod(Object self, Method method, Method originalMethod, Object[] args) {
     }
 
     /**
@@ -50,13 +49,13 @@ public class TransactionAspect implements Aspect {
      * @param self   the proxy instance
      * @param method the forwarder method for invoking the overridden method. It is null if the overridden method is
      *               abstract or declared in the interface
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args   an array of objects containing the values of the arguments passed in the method invocation on the
      *               proxy instance. If a parameter type is a primitive type, the type of the array element is a wrapper
      *               class
      */
     @Override
-    public void afterMethod(Object self, Method method, Method proxyMethod, Object[] args) {
+    public void afterMethod(Object self, Method method, Method originalMethod, Object[] args) {
     }
 
     /**
@@ -69,15 +68,15 @@ public class TransactionAspect implements Aspect {
      */
     @Override
     public InvocationCallback aroundMethod(InvocationCallback proceed) {
-        return (self, method, proxyMethod, args) -> {
-            Transactional transactional = proxyMethod.getAnnotation(Transactional.class);
+        return (self, method, originalMethod, args) -> {
+            Transactional transactional = originalMethod.getAnnotation(Transactional.class);
             if (transactional == null) {
-                return proceed.apply(self, method, proxyMethod, args);
+                return proceed.apply(self, method, originalMethod, args);
             } else {
                 Connection connection;
                 switch (transactional.transactionMode()) {
                     case NONE:
-                        return suspendTransactionAndContinue(proceed, self, method, proxyMethod, args,
+                        return suspendTransactionAndContinue(proceed, self, method, originalMethod, args,
                                 transactional.isolation());
                     case NONE_ACTIVE:
                         connection = witchCraftDataSource.getTransaction();
@@ -85,7 +84,7 @@ public class TransactionAspect implements Aspect {
                             throw new TransactionNotSupportedException(
                                     "A method not supporting transactions was called inside an active transaction");
                         }
-                        return proceed.apply(self, method, proxyMethod, args);
+                        return proceed.apply(self, method, originalMethod, args);
                     case REQUIRED_ACTIVE:
                         connection = witchCraftDataSource.getTransaction();
                         if (connection == null || connection.getAutoCommit()) {
@@ -93,17 +92,17 @@ public class TransactionAspect implements Aspect {
                                     "A method requiring an active transaction was called but there are no active" +
                                             "transactions");
                         }
-                        return proceed.apply(self, method, proxyMethod, args);
+                        return proceed.apply(self, method, originalMethod, args);
                     case REQUIRED_NEW:
-                        return createTransactionAndContinue(proceed, self, method, proxyMethod, args,
+                        return createTransactionAndContinue(proceed, self, method, originalMethod, args,
                                 transactional.isolation(), transactional.rollbackFor());
                     case REQUIRED:
                     default:
                         connection = witchCraftDataSource.getTransaction();
                         if (connection != null && !connection.getAutoCommit()) {
-                            return proceed.apply(self, method, proxyMethod, args);
+                            return proceed.apply(self, method, originalMethod, args);
                         }
-                        return createTransactionAndContinue(proceed, self, method, proxyMethod, args,
+                        return createTransactionAndContinue(proceed, self, method, originalMethod, args,
                                 transactional.isolation(), transactional.rollbackFor());
                 }
             }
@@ -115,24 +114,24 @@ public class TransactionAspect implements Aspect {
      * @param proceed proceed logic
      * @param self the proxy instance
      * @param method the forwarder method
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args method parameters
      * @param isolation transaction isolation
      * @return a result of invoking the wrapped method
      * @throws Throwable if unable to suspend current transaction or an exception occurs within the wrapped method
      */
     private Object suspendTransactionAndContinue(InvocationCallback proceed, Object self, Method method,
-                                                 Method proxyMethod, Object[] args, Isolation isolation)
+                                                 Method originalMethod, Object[] args, Isolation isolation)
             throws Throwable {
         Connection connection = witchCraftDataSource.getTransaction();
         if (connection == null) {
-            return proceed.apply(self, method, proxyMethod, args);
+            return proceed.apply(self, method, originalMethod, args);
         } else {
             connection = null;
             try {
                 connection = witchCraftDataSource.pushTransaction(isolation);
                 connection.setAutoCommit(true);
-                return proceed.apply(self, method, proxyMethod, args);
+                return proceed.apply(self, method, originalMethod, args);
             } finally {
                 if (connection != null) {
                     connection = witchCraftDataSource.popTransaction();
@@ -152,7 +151,7 @@ public class TransactionAspect implements Aspect {
      * @param proceed proceed logic
      * @param self the proxy instance
      * @param method the forwarder method
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args method parameters
      * @param isolation transaction isolation
      * @return a result of invoking the wrapped method
@@ -160,13 +159,13 @@ public class TransactionAspect implements Aspect {
      *                   wrapped method
      */
     private Object createTransactionAndContinue(InvocationCallback proceed, Object self, Method method,
-                                                Method proxyMethod, Object[] args, Isolation isolation,
+                                                Method originalMethod, Object[] args, Isolation isolation,
                                                 Class<? extends Throwable>[] rollbackFor)
             throws Throwable {
         Connection connection = null;
         try {
             connection = witchCraftDataSource.pushTransaction(isolation);
-            Object result = proceed.apply(self, method, proxyMethod, args);
+            Object result = proceed.apply(self, method, originalMethod, args);
             connection.commit();
             return result;
         } catch (Throwable t) {

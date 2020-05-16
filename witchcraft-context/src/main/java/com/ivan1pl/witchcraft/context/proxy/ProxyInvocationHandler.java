@@ -50,15 +50,15 @@ public class ProxyInvocationHandler implements MethodHandler {
      * @param self the proxy instance
      * @param method the forwarder method for invoking the overridden method. It is null if the overridden method is
      *               abstract or declared in the interface
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args an array of objects containing the values of the arguments passed in the method invocation on the
      *             proxy instance. If a parameter type is a primitive type, the type of the array element is a wrapper
      *             class
      * @throws Throwable if any advice fails
      */
-    private void beforeMethod(Object self, Method method, Method proxyMethod, Object[] args) throws Throwable {
+    private void beforeMethod(Object self, Method method, Method originalMethod, Object[] args) throws Throwable {
         for (Aspect aspect : aspects) {
-            aspect.beforeMethod(self, method, proxyMethod, args);
+            aspect.beforeMethod(self, method, originalMethod, args);
         }
     }
 
@@ -67,15 +67,15 @@ public class ProxyInvocationHandler implements MethodHandler {
      * @param self the proxy instance
      * @param method the forwarder method for invoking the overridden method. It is null if the overridden method is
      *               abstract or declared in the interface
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args an array of objects containing the values of the arguments passed in the method invocation on the
      *             proxy instance. If a parameter type is a primitive type, the type of the array element is a wrapper
      *             class
      * @throws Throwable if any advice fails
      */
-    private void afterMethod(Object self, Method method, Method proxyMethod, Object[] args) throws Throwable {
+    private void afterMethod(Object self, Method method, Method originalMethod, Object[] args) throws Throwable {
         for (Aspect aspect : aspects) {
-            aspect.afterMethod(self, method, proxyMethod, args);
+            aspect.afterMethod(self, method, originalMethod, args);
         }
     }
 
@@ -84,14 +84,14 @@ public class ProxyInvocationHandler implements MethodHandler {
      * @param self the proxy instance
      * @param method the forwarder method for invoking the overridden method. It is null if the overridden method is
      *               abstract or declared in the interface
-     * @param proxyMethod overridden method
+     * @param originalMethod overridden method
      * @param args an array of objects containing the values of the arguments passed in the method invocation on the
      *             proxy instance. If a parameter type is a primitive type, the type of the array element is a wrapper
      *             class
      * @return the resulting value of the method invocation
      * @throws Throwable if any advice fails
      */
-    private Object aroundMethod(Object self, Method method, Method proxyMethod, Object[] args)
+    private Object aroundMethod(Object self, Method method, Method originalMethod, Object[] args)
             throws Throwable {
         InvocationCallback proceed = (selfObj, proceedMethod, calledMethod, methodArgs) ->
                 proceedMethod.invoke(selfObj, methodArgs);
@@ -99,6 +99,6 @@ public class ProxyInvocationHandler implements MethodHandler {
         for (int i = aspects.length - 1; i >= 0; --i) {
             proceed = aspects[i].aroundMethod(proceed);
         }
-        return proceed.apply(self, method, proxyMethod, args);
+        return proceed.apply(self, method, originalMethod, args);
     }
 }

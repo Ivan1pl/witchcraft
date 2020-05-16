@@ -64,7 +64,19 @@ public class Query implements Cloneable {
      * Extract parameter names from the SQL string.
      */
     private void buildParameterIndex() throws InvalidQueryException {
-        int currentIndex = sql.indexOf(':');
+        int currentIndex = sql.indexOf('?');
+        while (currentIndex >= 0 && currentIndex < sql.length()) {
+            // Skip "??", "?|", "?&" (postgres)
+            if (currentIndex < sql.length() - 1 &&
+                    (sql.charAt(currentIndex + 1) == '?' || sql.charAt(currentIndex + 1) == '|' ||
+                            sql.charAt(currentIndex + 1) == '&')) {
+                currentIndex++;
+            } else {
+                unnamedParameters.add(currentIndex);
+            }
+            currentIndex = sql.indexOf('?', currentIndex + 1);
+        }
+        currentIndex = sql.indexOf(':');
         while (currentIndex >= 0 && currentIndex < sql.length() - 1) {
             // Skip escaped ":"
             if (currentIndex > 0 && sql.charAt(currentIndex - 1) == '\\') {
@@ -80,25 +92,12 @@ public class Query implements Cloneable {
                     parameters.add(new Parameter(
                             sql.substring(currentIndex + 1, paramEndIndex + 1), currentIndex, paramEndIndex));
                     sql = sql.substring(0, currentIndex) + '?' + sql.substring(paramEndIndex + 1);
-                    currentIndex = paramEndIndex;
                 } else {
                     currentIndex++;
                 }
             }
 
             currentIndex = sql.indexOf(':', currentIndex + 1);
-        }
-        currentIndex = sql.indexOf('?');
-        while (currentIndex >= 0 && currentIndex < sql.length()) {
-            // Skip "??", "?|", "?&" (postgres)
-            if (currentIndex < sql.length() - 1 &&
-                    (sql.charAt(currentIndex + 1) == '?' || sql.charAt(currentIndex + 1) == '|' ||
-                            sql.charAt(currentIndex + 1) == '&')) {
-                currentIndex++;
-            } else {
-                unnamedParameters.add(currentIndex);
-            }
-            currentIndex = sql.indexOf('?', currentIndex + 1);
         }
 
         if (!parameters.isEmpty() && !unnamedParameters.isEmpty()) {

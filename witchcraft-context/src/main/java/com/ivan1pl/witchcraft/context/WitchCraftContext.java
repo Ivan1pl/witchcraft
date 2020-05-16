@@ -88,7 +88,7 @@ public final class WitchCraftContext {
      * @return provided packages and all enabled module packages
      */
     private static String[] getBasePackages(JavaPlugin javaPlugin, String[] basePackages) {
-        List<String> packageList = Arrays.asList(basePackages);
+        List<String> packageList = new ArrayList<>(Arrays.asList(basePackages));
         for (Annotation annotation : javaPlugin.getClass().getAnnotations()) {
             Module module = annotation.annotationType().getAnnotation(Module.class);
             if (module != null && annotation.annotationType().getPackage() != null) {

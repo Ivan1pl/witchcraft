@@ -74,7 +74,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set color.
-     *
+     * <p>
      * The color to render this text in. Valid values are "black", "dark_blue", "dark_green", "dark_aqua", "dark_red",
      * "dark_purple", "gold", "gray", "dark_gray", "blue", "green", "aqua", "red", "light_purple", "yellow", "white",
      * and "reset" (cancels out the effects of colors used by parent objects). Technically, "bold", "italic",
@@ -97,7 +97,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set bold modifier.
-     *
+     * <p>
      * Boolean (true/false) - whether to render text in bold. Defaults to false.
      *
      * @param bold bold modifier to set
@@ -116,7 +116,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set italic modifier.
-     *
+     * <p>
      * Boolean (true/false) - whether to render text in italics. Defaults to false.
      *
      * @param italic italic modifier to set
@@ -135,7 +135,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set underlined modifier.
-     *
+     * <p>
      * Boolean (true/false) - whether to render text underlined. Defaults to false.
      *
      * @param underlined underlined modifier to set
@@ -154,7 +154,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set strikethrough modifier.
-     *
+     * <p>
      * Boolean (true/false) - whether to render text with a strikethrough. Defaults to false.
      *
      * @param strikethrough strikethrough modifier to set
@@ -173,7 +173,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set obfuscated modifier.
-     *
+     * <p>
      * Boolean (true/false) - whether to render text obfuscated. Defaults to false.
      *
      * @param obfuscated obfuscated modifier to set
@@ -192,7 +192,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set insertion.
-     *
+     * <p>
      * When the text is shift-clicked by a player, this string is inserted in their chat input. It does not overwrite
      * any existing text the player was writing.
      *
@@ -212,7 +212,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set click event.
-     *
+     * <p>
      * Allows for events to occur when the player clicks on text.
      *
      * @param clickEvent click event to set
@@ -231,7 +231,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set hover event.
-     *
+     * <p>
      * Allows for a tooltip to be displayed when the player hovers their mouse over text.
      *
      * @param hoverEvent hover event to set
@@ -250,7 +250,7 @@ public abstract class BaseRawMessage {
 
     /**
      * Set extra.
-     *
+     * <p>
      * A list of additional objects, sharing the same format as the base object.
      *
      * @param extra extra to set

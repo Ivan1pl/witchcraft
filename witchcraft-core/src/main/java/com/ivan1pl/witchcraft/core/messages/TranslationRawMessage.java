@@ -14,7 +14,7 @@ public class TranslationRawMessage extends BaseRawMessage {
 
     /**
      * A list of chat component arguments and/or string arguments to be used by {@link #translate}.
-     *
+     * <p>
      * The arguments are text corresponding to the arguments used by the translation string in the current language, in
      * order (for example, the first list element corresponds to "%1$s" in a translation string). Argument structure
      * repeats this raw JSON text structure.
@@ -31,7 +31,7 @@ public class TranslationRawMessage extends BaseRawMessage {
 
     /**
      * Set translate.
-     *
+     * <p>
      * The translation identifier of text to be displayed using the player's selected language. This identifier is the
      * same as the identifiers found in lang files from assets or resource packs.
      *
@@ -51,9 +51,9 @@ public class TranslationRawMessage extends BaseRawMessage {
 
     /**
      * Set translate arguments.
-     *
+     * <p>
      * A list of chat component arguments and/or string arguments to be used by {@link #translate}.
-     *
+     * <p>
      * The arguments are text corresponding to the arguments used by the translation string in the current language, in
      * order (for example, the first list element corresponds to "%1$s" in a translation string). Argument structure
      * repeats this raw JSON text structure.

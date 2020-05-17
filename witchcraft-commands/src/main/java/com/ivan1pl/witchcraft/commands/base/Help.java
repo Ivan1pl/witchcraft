@@ -34,12 +34,12 @@ class Help {
      * @param subcommands subcommands
      */
     static void help(CommandSender commandSender, String commandName, String commandDescription, String firstArg,
-                     String secondArg, Map<String, Method> subcommands) {
+                     String secondArg, Map<String, MethodHolder> subcommands) {
         int pageNumber = getPageNumber(firstArg, secondArg);
         String subcommand = getSubCommand(firstArg);
         Map<String, Method> availableSubcommands = new HashMap<>();
-        for (Map.Entry<String, Method> methodEntry : subcommands.entrySet()) {
-            Method m = methodEntry.getValue();
+        for (Map.Entry<String, MethodHolder> methodEntry : subcommands.entrySet()) {
+            Method m = methodEntry.getValue().getOriginalMethod();
             if (m == null) {
                 availableSubcommands.put(methodEntry.getKey(), null);
             } else {

@@ -37,7 +37,7 @@ public class ClickEvent {
 
     /**
      * Set action.
-     *
+     * <p>
      * The action to perform when clicked.
      *
      * @param action action to set
@@ -56,7 +56,7 @@ public class ClickEvent {
 
     /**
      * Set value.
-     *
+     * <p>
      * The URL, file, chat, command or book page used by the specified {@link #action}. Note that commands must be
      * prefixed with the usual "/" slash.
      *

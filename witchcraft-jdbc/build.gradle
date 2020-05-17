@@ -1,0 +1,5 @@
+dependencies {
+    compile project(':witchcraft-context')
+    compile group: 'org.apache.commons', name: 'commons-dbcp2', version: commonsDbcpVersion
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}

@@ -45,7 +45,7 @@ public class WitchCraftPlugin extends JavaPlugin {
             witchCraftContext.init();
             annotationBasedCommandExecutor = new AnnotationBasedCommandExecutor(this, witchCraftContext);
         } catch (CommandAlreadyExistsException | CommandDefinitionNotFoundException | CandidateNotFoundException |
-                NonUniqueCandidateException e) {
+                NonUniqueCandidateException | NoSuchMethodException e) {
             getLogger().severe("Failed to initialize command executor, the plugin will not be enabled\n" +
                     ExceptionUtils.getFullStackTrace(e));
             setEnabled(false);

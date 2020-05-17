@@ -20,7 +20,7 @@ public class ItemHoverEvent extends HoverEvent {
 
     /**
      * Set value.
-     *
+     * <p>
      * Can be a string formatted like item NBT data. Contains the "id" tag, and optionally the "Damage" tag and "tag"
      * tag (which is the same compound used as "dataTag" in the {@code /give} command).
      *

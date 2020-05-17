@@ -1,9 +1,10 @@
 group 'com.ivan1pl.witchcraft'
-version '0.6.0'
+version '0.7.0'
 
 ext {
     spigotVersion = '1.15.2-R0.1-SNAPSHOT'
     reflectionsVersion = '0.9.11'
+    commonsDbcpVersion = '2.7.0'
 }
 
 allprojects {
@@ -12,9 +13,10 @@ allprojects {
     apply plugin: 'maven-publish'
 
     group 'com.ivan1pl.witchcraft'
-    version '0.6.0'
+    version '0.7.0'
 
     sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
     repositories {
         mavenCentral()
@@ -31,6 +33,12 @@ allprojects {
     java {
         withJavadocJar()
         withSourcesJar()
+    }
+
+    javadoc {
+        options {
+            links 'https://docs.oracle.com/javase/8/docs/api/'
+        }
     }
 
     publishing {
@@ -61,5 +69,39 @@ allprojects {
                 }
             }
         }
+    }
+}
+
+def exportedProjects = [
+        ':witchcraft-core',
+        ':witchcraft-context',
+        ':witchcraft-commands',
+        ':witchcraft-jdbc',
+        ':witchcraft-plugin',
+        ':witchcraft-plugin-generator'
+]
+
+task allJavadoc(type: Javadoc) {
+    source exportedProjects.collect { projectName ->
+        project(projectName).sourceSets.main.allJava
+    }
+    classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
+    destinationDir = new File(buildDir, 'docs/javadoc')
+    options {
+        links 'https://docs.oracle.com/javase/8/docs/api/'
+    }
+}
+
+dependencies {
+    compile project(':witchcraft-plugin')
+    compile project(':witchcraft-jdbc')
+    compile(project(':witchcraft-plugin-generator')) {
+        exclude group: 'org.bukkit'
+    }
+}
+
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }

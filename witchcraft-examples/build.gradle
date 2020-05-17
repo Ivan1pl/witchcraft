@@ -1,7 +1,3 @@
-repositories {
-    mavenLocal()
-}
-
 dependencies {
     annotationProcessor project(':witchcraft-plugin-generator')
     compile project(':witchcraft-plugin')

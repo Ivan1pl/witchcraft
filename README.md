@@ -42,7 +42,7 @@ Add dependency on `witchcraft-plugin`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-plugin</artifactId>
-        <version>0.6.0</version>
+        <version>0.7.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -53,7 +53,7 @@ Add dependency on `witchcraft-plugin`:
 Add dependency on `witchcraft-plugin`:
 ```gradle
 dependencies {
-    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.6.0"
+    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.7.0"
 }
 ```
 
@@ -263,7 +263,7 @@ Add dependency on `witchcraft-plugin`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-plugin</artifactId>
-        <version>0.6.0</version>
+        <version>0.7.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -274,7 +274,7 @@ Add dependency on `witchcraft-plugin`:
 Add dependency on `witchcraft-plugin`:
 ```gradle
 dependencies {
-    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.6.0"
+    compile "com.ivan1pl.witchcraft:witchcraft-plugin:0.7.0"
 }
 ```
 
@@ -568,7 +568,7 @@ Add dependency on `witchcraft-jdbc`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-jdbc</artifactId>
-        <version>0.6.0</version>
+        <version>0.7.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -579,7 +579,7 @@ Add dependency on `witchcraft-jdbc`:
 Add dependency on `witchcraft-jdbc`:
 ```gradle
 dependencies {
-    compile "com.ivan1pl.witchcraft:witchcraft-jdbc:0.6.0"
+    compile "com.ivan1pl.witchcraft:witchcraft-jdbc:0.7.0"
 }
 ```
 
@@ -662,7 +662,7 @@ Add dependency on `witchcraft-plugin-generator`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-plugin-generator</artifactId>
-        <version>0.6.0</version>
+        <version>0.7.0</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -673,7 +673,7 @@ Add dependency on `witchcraft-plugin-generator`:
 Add dependency on `witchcraft-plugin-generator`:
 ```gradle
 dependencies {
-    annotationProcessor "com.ivan1pl.witchcraft:witchcraft-plugin-generator:0.6.0"
+    annotationProcessor "com.ivan1pl.witchcraft:witchcraft-plugin-generator:0.7.0"
 }
 ```
 
@@ -765,7 +765,7 @@ Add dependency on `witchcraft-core`:
     <dependency>
         <groupId>com.ivan1pl.witchcraft</groupId>
         <artifactId>witchcraft-core</artifactId>
-        <version>0.6.0</version>
+        <version>0.7.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -776,7 +776,7 @@ Add dependency on `witchcraft-core`:
 Add dependency on `witchcraft-core`:
 ```gradle
 dependencies {
-    compile "com.ivan1pl.witchcraft:witchcraft-core:0.6.0"
+    compile "com.ivan1pl.witchcraft:witchcraft-core:0.7.0"
 }
 ```
 

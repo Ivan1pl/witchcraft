@@ -1,4 +1,4 @@
-# WitchCraft ![Build status](https://github.com/Ivan1pl/witchcraft/workflows/Build/badge.svg)
+# WitchCraft [![Donate](https://www.paypalobjects.com/en_US/PL/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=WKYTT2753JJ2J&source=url) ![Build status](https://github.com/Ivan1pl/witchcraft/workflows/Build/badge.svg)
 WitchCraft Framework is a java framework for creating Bukkit plugins. It provides annotation-based command configuration and `plugin.yml` file generation.
 
 # Setup

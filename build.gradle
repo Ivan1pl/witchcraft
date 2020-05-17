@@ -91,3 +91,17 @@ task allJavadoc(type: Javadoc) {
         links 'https://docs.oracle.com/javase/8/docs/api/'
     }
 }
+
+dependencies {
+    compile project(':witchcraft-plugin')
+    compile project(':witchcraft-jdbc')
+    compile(project(':witchcraft-plugin-generator')) {
+        exclude group: 'org.bukkit'
+    }
+}
+
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

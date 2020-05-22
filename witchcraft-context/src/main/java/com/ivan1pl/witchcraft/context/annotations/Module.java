@@ -13,12 +13,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface Module {
     /**
-     * Aspects declared by this module. All aspects should be managed classes and should be placed within package scan
-     * path.
-     */
-    Class<? extends Aspect>[] aspects() default {};
-
-    /**
      * Other modules required for this module to work.
      */
     Class<? extends Annotation>[] uses() default {};

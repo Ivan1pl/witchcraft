@@ -19,6 +19,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -161,13 +162,8 @@ public final class WitchCraftContext {
      * Find all declared aspects and add them to invocation handler.
      */
     private void initAspects() {
-        for (Annotation annotation : javaPlugin.getClass().getAnnotations()) {
-            Module module = annotation.annotationType().getAnnotation(Module.class);
-            if (module != null) {
-                for (Class<? extends Aspect> aspect : module.aspects()) {
-                    proxyInvocationHandler.addAspect(get(aspect));
-                }
-            }
+        for (Aspect aspect : getAll(Aspect.class)) {
+            proxyInvocationHandler.addAspect(aspect);
         }
     }
 
@@ -288,6 +284,17 @@ public final class WitchCraftContext {
                     "Candidate of type " + clazz.getCanonicalName() + " could not be found");
         }
         return (T) candidates.get(0);
+    }
+
+    /**
+     * Get all objects with given type from context.
+     * @param clazz class object
+     * @param <T> requested object type
+     * @return list of all managed objects of the required type
+     */
+    @SuppressWarnings("unchecked")
+    public <T> List<? extends T> getAll(Class<T> clazz) {
+        return getCandidatesForType(clazz).stream().map(o -> (T) o).collect(Collectors.toList());
     }
 
     /**

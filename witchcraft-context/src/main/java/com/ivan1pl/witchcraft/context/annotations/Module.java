@@ -17,4 +17,9 @@ public @interface Module {
      * path.
      */
     Class<? extends Aspect>[] aspects() default {};
+
+    /**
+     * Other modules required for this module to work.
+     */
+    Class<? extends Annotation>[] uses() default {};
 }

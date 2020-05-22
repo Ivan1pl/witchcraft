@@ -89,15 +89,41 @@ public final class WitchCraftContext {
      */
     private static String[] getBasePackages(JavaPlugin javaPlugin, String[] basePackages) {
         List<String> packageList = new ArrayList<>(Arrays.asList(basePackages));
+        for (Class<?> module : getModules(javaPlugin)) {
+            javaPlugin.getLogger().info(String.format("Detected module in package: %s", module.getPackage().getName()));
+            packageList.add(module.getPackage().getName());
+        }
+        return packageList.toArray(new String[0]);
+    }
+
+    /**
+     * Get all modules used by the plugin, including modules used by other modules and not declared directly.
+     * @param javaPlugin plugin instance
+     * @return set of all used modules
+     */
+    private static Set<Class<?>> getModules(JavaPlugin javaPlugin) {
+        Set<Class<?>> result = new HashSet<>();
+        Queue<Module> queued = new LinkedList<>();
         for (Annotation annotation : javaPlugin.getClass().getAnnotations()) {
             Module module = annotation.annotationType().getAnnotation(Module.class);
             if (module != null && annotation.annotationType().getPackage() != null) {
-                javaPlugin.getLogger().info(String.format(
-                        "Detected module in package: %s", annotation.annotationType().getPackage().getName()));
-                packageList.add(annotation.annotationType().getPackage().getName());
+                queued.add(module);
+                result.add(annotation.annotationType());
             }
         }
-        return packageList.toArray(new String[0]);
+        while (!queued.isEmpty()) {
+            Module module = queued.poll();
+            for (Class<? extends Annotation> clazz : module.uses()) {
+                if (!result.contains(clazz)) {
+                    Module usedModule = clazz.getAnnotation(Module.class);
+                    if (usedModule != null && clazz.getPackage() != null) {
+                        queued.add(usedModule);
+                        result.add(clazz);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     /**

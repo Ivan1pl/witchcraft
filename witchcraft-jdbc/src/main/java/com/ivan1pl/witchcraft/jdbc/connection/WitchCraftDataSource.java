@@ -10,14 +10,16 @@ import org.apache.commons.dbcp2.BasicDataSourceFactory;
 import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.*;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Stack;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 
 /**
  * WitchCraft's managed {@link DataSource} wrapper.
  */
-@Managed
+@Managed(shutdownMethod = "shutdown")
 public class WitchCraftDataSource implements DataSource {
     /**
      * Wrapped data source.
@@ -27,7 +29,7 @@ public class WitchCraftDataSource implements DataSource {
     /**
      * Active transactions managed by WitchCraft per thread.
      */
-    private final ThreadLocal<Stack<Connection>> activeTransactions = new ThreadLocal<>();
+    private final Map<Thread, Stack<Connection>> activeTransactions = new WeakHashMap<>();
 
     /**
      * Constructor.
@@ -64,7 +66,7 @@ public class WitchCraftDataSource implements DataSource {
      */
     @Override
     public Connection getConnection() throws SQLException {
-        Stack<Connection> connections = activeTransactions.get();
+        Stack<Connection> connections = activeTransactions.get(Thread.currentThread());
         if (connections != null && !connections.empty()) {
             return connections.peek();
         }
@@ -80,7 +82,7 @@ public class WitchCraftDataSource implements DataSource {
      */
     @Override
     public Connection getConnection(String username, String password) throws SQLException {
-        Stack<Connection> connections = activeTransactions.get();
+        Stack<Connection> connections = activeTransactions.get(Thread.currentThread());
         if (connections != null && !connections.empty()) {
             return connections.peek();
         }
@@ -214,10 +216,7 @@ public class WitchCraftDataSource implements DataSource {
         if (isolation.getLevel() != null) {
             connection.setTransactionIsolation(isolation.getLevel());
         }
-        Stack<Connection> connections = activeTransactions.get();
-        if (connections == null) {
-            activeTransactions.set(connections = new Stack<>());
-        }
+        Stack<Connection> connections = activeTransactions.computeIfAbsent(Thread.currentThread(), k -> new Stack<>());
         TransactionConnectionWrapper transactionConnectionWrapper = new TransactionConnectionWrapper(connection);
         connections.push(transactionConnectionWrapper);
         return transactionConnectionWrapper;
@@ -229,7 +228,7 @@ public class WitchCraftDataSource implements DataSource {
      * @return current transaction
      */
     public Connection getTransaction() {
-        Stack<Connection> connections = activeTransactions.get();
+        Stack<Connection> connections = activeTransactions.get(Thread.currentThread());
         if (connections != null && !connections.empty()) {
             return connections.peek();
         }
@@ -242,10 +241,24 @@ public class WitchCraftDataSource implements DataSource {
      * @return current transaction (if active)
      */
     public Connection popTransaction() {
-        Stack<Connection> connections = activeTransactions.get();
+        Stack<Connection> connections = activeTransactions.get(Thread.currentThread());
         if (connections != null && !connections.empty()) {
             return connections.pop();
         }
         return null;
+    }
+
+    public void shutdown() {
+        for (Stack<Connection> connections : activeTransactions.values()) {
+            while (!connections.empty()) {
+                Connection connection = connections.pop();
+                try {
+                    connection.rollback();
+                    connection.close();
+                } catch (SQLException e) {
+                    //nop
+                }
+            }
+        }
     }
 }

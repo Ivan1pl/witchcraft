@@ -9,4 +9,13 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Managed {
+    /**
+     * Method called right after context initialization.
+     */
+    String initMethod() default "";
+
+    /**
+     * Method called when the plugin is being disabled.
+     */
+    String shutdownMethod() default "";
 }

@@ -99,6 +99,7 @@ public class WitchCraftPlugin extends JavaPlugin {
             annotationBasedCommandExecutor = null;
         }
         if (witchCraftContext != null) {
+            witchCraftContext.shutdown();
             witchCraftContext.clear();
             witchCraftContext = null;
         }

@@ -10,6 +10,7 @@ import com.ivan1pl.witchcraft.context.proxy.Aspect;
 import com.ivan1pl.witchcraft.context.proxy.ProxyInvocationHandler;
 import javassist.util.proxy.Proxy;
 import javassist.util.proxy.ProxyFactory;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.reflections.Reflections;
@@ -44,7 +45,7 @@ public final class WitchCraftContext {
     /**
      * Context containing instances of all managed classes.
      */
-    private final Map<String, List<Object>> context = new HashMap<>();
+    private final Map<String, List<ObjectData>> context = new HashMap<>();
 
     /**
      * Invocation handler for all managed classes.
@@ -143,16 +144,31 @@ public final class WitchCraftContext {
             }
             Queue<Class<?>> creationQueue = new CreationQueueBuilder(javaPlugin, classes).createQueue();
 
-            add(this);
-            add(javaPlugin);
+            add(this, null, null);
+            add(javaPlugin, null, null);
 
             while (!creationQueue.isEmpty()) {
                 Class<?> clazz = creationQueue.poll();
                 Object instance = attemptCreate(clazz);
-                add(instance);
+                String initMethod = null;
+                String shutdownMethod = null;
+                Managed managed = clazz.getAnnotation(Managed.class);
+                if (managed != null && !managed.initMethod().isEmpty()) {
+                    initMethod = managed.initMethod();
+                }
+                if (managed != null && !managed.shutdownMethod().isEmpty()) {
+                    shutdownMethod = managed.shutdownMethod();
+                }
+                add(instance, initMethod, shutdownMethod);
             }
 
             initAspects();
+            for (ObjectData objectData : getAllObjectData()) {
+                if (objectData.getInitMethod() != null) {
+                    objectData.getObject().getClass().getMethod(objectData.getInitMethod())
+                            .invoke(objectData.getObject());
+                }
+            }
         } catch (Exception e) {
             throw new InitializationFailedException("Failed to initialize WitchCraft context", e);
         }
@@ -238,15 +254,18 @@ public final class WitchCraftContext {
     /**
      * Add object to WitchCraft dependency injection context.
      * @param object object to add
+     * @param initMethod object's init method
+     * @param shutdownMethod object's shutdown method
      */
-    private void add(Object object) {
+    private void add(Object object, String initMethod, String shutdownMethod) {
+        ObjectData objectData = new ObjectData(object, initMethod, shutdownMethod);
         Class<?> clazz = object.getClass();
         Queue<Class<?>> classes = new LinkedList<>();
         classes.add(clazz);
         while (!classes.isEmpty()) {
             Class<?> c = classes.poll();
-            List<Object> objects = context.computeIfAbsent(c.getCanonicalName(), o -> new LinkedList<>());
-            objects.add(object);
+            List<ObjectData> objects = context.computeIfAbsent(c.getCanonicalName(), o -> new LinkedList<>());
+            objects.add(objectData);
             classes.addAll(Arrays.asList(c.getInterfaces()));
             c = c.getSuperclass();
             if (c != null) {
@@ -264,7 +283,16 @@ public final class WitchCraftContext {
         if (type == null) {
             return new ArrayList<>();
         }
-        return context.getOrDefault(type.getCanonicalName(), new ArrayList<>());
+        return context.getOrDefault(type.getCanonicalName(), new ArrayList<>())
+                .stream().map(ObjectData::getObject).collect(Collectors.toList());
+    }
+
+    /**
+     * Get all object data stored in context.
+     * @return all object data stored in context
+     */
+    private Set<ObjectData> getAllObjectData() {
+        return context.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
     /**
@@ -304,6 +332,25 @@ public final class WitchCraftContext {
      */
     public void clear() {
         context.clear();
+    }
+
+    /**
+     * Invoke shutdown methods of all managed classes.
+     * <p>
+     * Warning: the plugin might not work properly after invoking this method.
+     */
+    public void shutdown() {
+        try {
+            for (ObjectData objectData : getAllObjectData()) {
+                if (objectData.getShutdownMethod() != null) {
+                    objectData.getObject().getClass().getMethod(objectData.getShutdownMethod())
+                            .invoke(objectData.getObject());
+                }
+            }
+        } catch (Exception e) {
+            javaPlugin.getLogger().severe("Error while shutting down dependency injection context:\n" +
+                    ExceptionUtils.getFullStackTrace(e));
+        }
     }
 
     /**

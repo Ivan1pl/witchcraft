@@ -11,7 +11,7 @@ If you want to use WitchCraft Framework with building tools like `maven` or `gra
     <repository>
         <id>ivan1pl</id>
         <name>ivan1pl</name>
-        <url>http://nexus.ivan1pl.com/repository/maven-releases/</url>
+        <url>https://dl.bintray.com/ivan1pl/ivan1pl-bukkit</url>
     </repository>
 </repositories>
 ```
@@ -21,7 +21,7 @@ If you want to use WitchCraft Framework with building tools like `maven` or `gra
 ```gradle
 repositories {
     maven {
-        url 'http://nexus.ivan1pl.com/repository/maven-releases/'
+        url 'https://dl.bintray.com/ivan1pl/ivan1pl-bukkit'
     }
 }
 ```
